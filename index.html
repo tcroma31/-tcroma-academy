@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V3.0</title>
+<title>TCROMA ACADEMY V3.1 — LE MERCATO</title>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#06140d;--card:#10291b;--card2:#183b27;--line:#2b5a3c;--txt:#f5fbf7;--muted:#b7cbbc;--gold:#f4cb47;--red:#8c3434;--green:#2bb768;--blue:#3674c8}
@@ -38,9 +38,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div>
-    <h1>⚽ TCROMA ACADEMY V3.0</h1>
+    <h1>⚽ TCROMA ACADEMY V3.1 — LE MERCATO</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
-    <p>De 13 ans aux seniors, avec matchs interactifs, stages, détections et bilans.</p><p class="muted">Version 3.0</p>
+    <p>De 13 ans aux seniors : matchs, contrats, agents, prêts, essais et mercato.</p><p class="muted">Version 3.1 — Le Mercato</p>
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
   </div>
@@ -123,14 +123,14 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
     <button class="tab" data-tab="player">Joueur</button>
     <button class="tab" data-tab="standing">Classement</button>
     <button class="tab" data-tab="journal">Journal</button>
-    <button class="tab" data-tab="future">Avenir</button><button class="tab" data-tab="honours">Palmarès</button><button class="tab" data-tab="money">Finances</button>
+    <button class="tab" data-tab="future">Avenir</button><button class="tab" data-tab="honours">Palmarès</button><button class="tab" data-tab="money">Finances</button><button class="tab" data-tab="market">Mercato</button>
   </nav>
 
   <section id="tab-week"></section>
   <section id="tab-player" class="hidden"></section>
   <section id="tab-standing" class="hidden"></section>
   <section id="tab-journal" class="hidden"></section>
-  <section id="tab-future" class="hidden"></section><section id="tab-honours" class="hidden"></section><section id="tab-money" class="hidden"></section>
+  <section id="tab-future" class="hidden"></section><section id="tab-honours" class="hidden"></section><section id="tab-money" class="hidden"></section><section id="tab-market" class="hidden"></section>
 
   <div class="card">
     <button id="saveBtn" class="secondary">Sauvegarder</button>
@@ -144,7 +144,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV30';
+const SAVE_KEY = 'tcromaAcademyV31';
 
 const REGIONAL = [
   'EFCV Verfeil','FC Girou',"L'Union Saint-Jean",'FC Lauragais',
@@ -173,6 +173,22 @@ const PRO_LEVELS = [
   {name:'National / Ligue 3',min:30,clubs:['Nîmes Olympique','Dijon FCO','Le Mans FC','Sochaux']},
   {name:'Ligue 2',min:48,clubs:['Rodez AF','Pau FC','Grenoble Foot 38','Guingamp']},
   {name:'Ligue 1',min:68,clubs:['Toulouse FC','Montpellier HSC','AS Monaco','Lille OSC']}
+];
+
+const AGENTS = [
+  {id:'family',name:'La famille',level:0,commission:0,network:'Clubs locaux'},
+  {id:'local',name:'Agent local occitan',level:1,commission:5,network:'Régional et National'},
+  {id:'national',name:'Agent national',level:2,commission:8,network:'National, Ligue 2 et Ligue 1'},
+  {id:'elite',name:'Super-agent international',level:3,commission:10,network:'Championnats majeurs'}
+];
+
+const REGIONAL_TRIAL_CLUBS = [
+  {name:'EFCV Verfeil',level:'R2/R3',need:['Gardien','Défenseur central','Milieu relayeur']},
+  {name:'FC Girou',level:'R2',need:['Attaquant','Ailier droit','Ailier gauche']},
+  {name:'FC Lauragais',level:'R1/R2',need:['Défenseur central','Milieu défensif','Gardien']},
+  {name:"L'Union Saint-Jean",level:'R1',need:['Meneur de jeu','Attaquant','Latéral droit']},
+  {name:'FC Lavaur',level:'R1/R2',need:['Milieu relayeur','Ailier gauche','Gardien']},
+  {name:'Balma SC',level:'R1/N3',need:['Attaquant','Défenseur central','Milieu défensif']}
 ];
 
 let state = null;
@@ -228,6 +244,13 @@ function normalizeState(data){
   p.careerPath = p.careerPath || 'Jeunes';
   p.agent = p.agent || {name:'Famille',level:0,commission:0};
   p.poleStatus = p.poleStatus || (p.pole ? 'Retenu' : p.poleAttempted ? 'Non retenu' : 'À venir');
+  p.transferHistory=Array.isArray(p.transferHistory)?p.transferHistory:[];
+  p.clubTrials=Array.isArray(p.clubTrials)?p.clubTrials:[];
+  p.offers=Array.isArray(p.offers)?p.offers:[];
+  p.marketMessage=p.marketMessage||'';
+  p.regionalDecisionPending=Boolean(p.regionalDecisionPending);
+  p.licenseRenewed=Boolean(p.licenseRenewed);
+  p.agent=p.agent||{id:'family',name:'La famille',level:0,commission:0,network:'Clubs locaux'};
 
   s.round = Math.max(1, Number(s.round) || 1);
   s.phase = [
@@ -1032,6 +1055,174 @@ function decideCareerPath(){
 }
 function createContract(){const years=pick([2,3]),monthly=rand(1800,8500),bonus=rand(3000,25000);state.player.balance+=bonus;state.player.totalIncome+=bonus;return{club:state.player.club,years,remaining:years,monthly,signingBonus:bonus,role:pick(['Rotation','Titulaire potentiel','Titulaire','Jeune à développer'])}}
 function generateOffers(){const p=state.player,count=rand(0,4),offers=[];for(let i=0;i<count;i++){const level=pick(PRO_LEVELS);offers.push({club:pick(level.clubs),years:pick([2,3]),monthly:rand(2200,16000),signingBonus:rand(5000,50000),role:pick(['Rotation','Titulaire potentiel','Titulaire']),loan:Math.random()<.25,purchaseOption:Math.random()<.5})}p.offers=offers;return offers}
+
+function availableAgents(){
+  const p=state.player;
+  return AGENTS.filter(a =>
+    a.level===0 ||
+    (a.level===1 && (p.age>=16 || p.reputation>=18)) ||
+    (a.level===2 && (p.pro || p.reputation>=40)) ||
+    (a.level===3 && p.pro && p.reputation>=72)
+  );
+}
+
+function chooseAgent(id){
+  const p=state.player;
+  const a=AGENTS.find(x=>x.id===id);
+  if(!a || !availableAgents().some(x=>x.id===id)){
+    p.marketMessage='Cet agent ne souhaite pas encore représenter ton dossier.';
+    return;
+  }
+  p.agent={...a};
+  p.marketMessage=`Tu signes avec ${a.name}. Commission : ${a.commission} %.`;
+  log('Agent',p.marketMessage);
+}
+
+function generateMarketOffers(){
+  const p=state.player;
+  const max=Math.min(4,1+(p.agent.level||0));
+  let count=rand(0,max);
+  if(p.reputation>=70 && count===0) count=1;
+  p.offers=[];
+
+  for(let i=0;i<count;i++){
+    const eligible=PRO_LEVELS.filter(x=>p.reputation>=x.min-15);
+    const level=eligible.length?pick(eligible):PRO_LEVELS[0];
+    const loan=Math.random()<.28 && p.age<=25;
+    p.offers.push({
+      id:`o${Date.now()}${i}${rand(10,99)}`,
+      club:pick(level.clubs),level:level.name,
+      years:pick([2,3]),
+      monthly:rand(1800,15000),
+      signingBonus:rand(3000,45000),
+      role:pick(['Remplaçant','Rotation','Titulaire potentiel','Titulaire']),
+      loan,purchaseOption:loan&&Math.random()<.55,
+      status:'active',countered:false
+    });
+  }
+  p.marketMessage=p.offers.length?`${p.offers.length} offre(s) reçue(s).`:'Aucune offre reçue.';
+  log('Mercato',p.marketMessage);
+}
+
+function acceptMarketOffer(id){
+  const p=state.player,o=p.offers.find(x=>x.id===id&&x.status==='active');
+  if(!o)return;
+  const old=p.club;
+  if(o.loan){
+    p.loan={parentClub:old,loanClub:o.club,remaining:1,purchaseOption:o.purchaseOption,monthly:o.monthly};
+    p.club=o.club;
+    p.marketMessage=`Prêt accepté à ${o.club}${o.purchaseOption?' avec option d’achat':''}.`;
+  }else{
+    p.club=o.club;
+    p.contract={club:o.club,years:o.years,remaining:o.years,monthly:o.monthly,signingBonus:o.signingBonus,role:o.role};
+    p.balance+=o.signingBonus;p.totalIncome+=o.signingBonus;p.freeAgent=false;
+    p.marketMessage=`Contrat signé à ${o.club} pour ${o.years} ans.`;
+  }
+  p.transferHistory.push({age:p.age,from:old,to:p.club,type:o.loan?'Prêt':'Transfert'});
+  p.offers.forEach(x=>x.status=x.id===id?'accepted':'withdrawn');
+  log('Signature',p.marketMessage);
+}
+
+function rejectMarketOffer(id){
+  const o=state.player.offers.find(x=>x.id===id);
+  if(!o)return;
+  o.status='rejected';
+  state.player.marketMessage=`Offre de ${o.club} refusée.`;
+}
+
+function negotiateMarketOffer(id,type){
+  const p=state.player,o=p.offers.find(x=>x.id===id&&x.status==='active');
+  if(!o)return;
+  const chance=.50+(p.agent.level||0)*.10+p.reputation/500-(o.countered?.15:0);
+  if(Math.random()>chance){
+    if(Math.random()<.3){o.status='withdrawn';p.marketMessage=`${o.club} retire son offre.`}
+    else{p.marketMessage=`${o.club} refuse la demande mais maintient l’offre.`;o.countered=true}
+    return;
+  }
+  if(type==='salary')o.monthly=Math.round(o.monthly*1.12/100)*100;
+  if(type==='bonus')o.signingBonus=Math.round(o.signingBonus*1.25/100)*100;
+  if(type==='role')o.role='Titulaire potentiel';
+  if(type==='years')o.years=3;
+  o.countered=true;
+  p.marketMessage=`${o.club} accepte ta contre-proposition.`;
+}
+
+function requestTransfer(){
+  const p=state.player;
+  p.transferRequestActive=true;
+  p.marketMessage=p.coach>=65
+    ?'Le club accepte d’écouter les offres, mais souhaite te conserver.'
+    :'Le club te place sur la liste des transferts.';
+  generateMarketOffers();
+}
+
+function cancelTransfer(){
+  const p=state.player;
+  p.transferRequestActive=false;
+  p.marketMessage='Tu retires ta demande de transfert.';
+}
+
+function terminateContract(){
+  const p=state.player;
+  if(!p.contract)return;
+  const chance=.08+(p.coach<25?.25:0)+(p.transferRequestActive?.15:0);
+  if(Math.random()<chance){
+    p.contract=null;p.freeAgent=true;
+    p.marketMessage='Résiliation acceptée : tu es joueur libre.';
+  }else p.marketMessage='Le club refuse la rupture anticipée.';
+}
+
+function prepareRegionalTrials(){
+  const p=state.player;
+  p.clubTrials=[...REGIONAL_TRIAL_CLUBS].sort(()=>Math.random()-.5).slice(0,3)
+    .map(c=>({...c,status:'pending',message:'Essai à effectuer'}));
+  p.regionalDecisionPending=true;
+  p.marketMessage='Trois clubs te proposent un essai.';
+}
+
+function runRegionalTrial(i){
+  const p=state.player,t=p.clubTrials[i];
+  if(!t||t.status!=='pending')return;
+  const need=t.need.includes(p.pos)?15:0;
+  const score=(p.tech+p.speed+p.physical+p.mental)/4*.6+p.form*.15+p.reputation*.1+need+Math.random()*17;
+  if(score>=78){t.status='accepted';t.message='Le club insiste pour te recruter et promet une place importante.'}
+  else if(score>=66){t.status='accepted';t.message='Essai réussi : une licence est proposée.'}
+  else if(score>=58){t.status='wait';t.message='Liste d’attente.'}
+  else{t.status='rejected';t.message='Essai non concluant.'}
+  p.marketMessage=`${t.name} : ${t.message}`;
+}
+
+function signRegionalTrial(i){
+  const p=state.player,t=p.clubTrials[i];
+  if(!t||t.status!=='accepted')return;
+  const old=p.club;p.club=t.name;
+  p.transferHistory.push({age:p.age,from:old,to:p.club,type:'Mutation régionale'});
+  p.regionalDecisionPending=false;p.licenseRenewed=true;
+  p.marketMessage=`Tu signes ta licence à ${p.club}.`;
+}
+
+function renewRegionalLicense(){
+  const p=state.player;
+  p.regionalDecisionPending=false;p.licenseRenewed=true;
+  p.marketMessage=`Tu reprends une licence au ${p.club}.`;
+  p.coach=clamp(p.coach+3);
+}
+
+function processLoanEnd(){
+  const p=state.player;
+  if(!p.loan)return '';
+  p.loan.remaining--;
+  if(p.loan.remaining>0)return '';
+  const l={...p.loan};
+  if(l.purchaseOption&&Math.random()<.55){
+    p.contract={club:l.loanClub,years:3,remaining:3,monthly:Math.round(l.monthly*1.15),signingBonus:rand(4000,18000),role:'Rotation'};
+    p.balance+=p.contract.signingBonus;p.totalIncome+=p.contract.signingBonus;p.loan=null;
+    return `${l.loanClub} lève l’option d’achat.`;
+  }
+  p.club=l.parentClub;p.loan=null;
+  return `Fin du prêt : retour à ${p.club}.`;
+}
+
 function annualFinances(){const p=state.player;let income=0,expenses=0;if(p.pro&&p.contract){income=p.contract.monthly*12;expenses=Math.round(income*(p.agent.commission||0)/100)+rand(6000,18000)}else if(p.amateur){income=rand(0,4000);expenses=rand(1500,6000)}else expenses=rand(300,1500);p.balance+=income-expenses;p.totalIncome+=income;p.totalExpenses+=expenses;return{income,expenses}}
 function endSeason(){
   if(state.season.seasonProcessed) return;
@@ -1090,7 +1281,10 @@ function endSeason(){
   const cdf=coupeDeFrance();
   if(cdf){extras.push(cdf);log('Coupe de France',cdf)}
 
-  const awards=awardSeason();if(awards.length)extras.push('Récompenses : '+awards.join(', '));const pathDecision=decideCareerPath();if(pathDecision)extras.push(pathDecision);if(p.pro&&p.contract){p.contract.remaining--;if(p.contract.remaining<=1){const offers=generateOffers();extras.push(offers.length?`${offers.length} proposition(s) reçue(s).`:'Aucune proposition reçue.')}}const finance=annualFinances();extras.push(`Finances : +${finance.income.toLocaleString('fr-FR')} € / -${finance.expenses.toLocaleString('fr-FR')} €.`);const intl=internationalCompetition();
+  const loanResult=processLoanEnd();if(loanResult){extras.push(loanResult);log('Prêt',loanResult)}
+
+  const awards=awardSeason();if(awards.length)extras.push('Récompenses : '+awards.join(', '));const pathDecision=decideCareerPath();if(pathDecision)extras.push(pathDecision);if(p.pro&&p.contract){p.contract.remaining--;if(p.contract.remaining<=1){const offers=generateOffers();extras.push(offers.length?`${offers.length} proposition(s) reçue(s).`:'Aucune proposition reçue.')}}if(p.age>=18&&p.amateur&&!p.licenseRenewed)p.regionalDecisionPending=true;
+  const finance=annualFinances();extras.push(`Finances : +${finance.income.toLocaleString('fr-FR')} € / -${finance.expenses.toLocaleString('fr-FR')} €.`);const intl=internationalCompetition();
   if(intl){extras.push(intl);log('Sélection',intl)}
 
   detectProfile();
@@ -1382,6 +1576,57 @@ function renderTabs(){
   $('tab-honours').innerHTML=`<div class="card"><h2>🏆 Palmarès</h2><p>Parcours : <strong>${p.careerPath}</strong></p><h3>Titres</h3>${p.titles.length?p.titles.map(x=>`<div class="trophy">${x}</div>`).join(''):'<p>Aucun titre.</p>'}<h3>Récompenses</h3>${p.awards.length?p.awards.map(x=>`<div class="trophy">${x}</div>`).join(''):'<p>Aucune récompense.</p>'}<h3>Historique</h3>${p.history.length?p.history.map(h=>`<div class="journal">${h.age} ans — ${h.club} — ${h.level} — note ${h.rating}</div>`).join(''):'<p>Aucune saison terminée.</p>'}</div>`;
   $('tab-money').innerHTML=`<div class="card"><h2>💰 Finances</h2><p class="money">Solde : ${Math.round(p.balance).toLocaleString('fr-FR')} €</p><p>Revenus cumulés : ${Math.round(p.totalIncome).toLocaleString('fr-FR')} €</p><p>Dépenses cumulées : ${Math.round(p.totalExpenses).toLocaleString('fr-FR')} €</p><p>Agent : ${p.agent.name} — commission ${p.agent.commission}%</p>${p.contract?`<h3>Contrat</h3><p>${p.contract.club} — ${p.contract.remaining} an(s)</p><p>${p.contract.monthly.toLocaleString('fr-FR')} €/mois — ${p.contract.role}</p>`:'<p>Aucun contrat professionnel.</p>'}${p.offers.length?`<h3>Propositions</h3>${p.offers.map(o=>`<div class="trophy">${o.club} — ${o.years} ans — ${o.monthly.toLocaleString('fr-FR')} €/mois${o.loan?' — prêt'+(o.purchaseOption?' avec option d’achat':' sans option'):''}</div>`).join('')}`:''}</div>`;
 
+
+  const activeOffers=p.offers.filter(o=>o.status==='active');
+  $('tab-market').innerHTML=`<div class="card">
+    <h2>🤝 Mercato</h2>
+    ${p.marketMessage?`<div class="message">${p.marketMessage}</div>`:''}
+    <h3>Agent actuel</h3>
+    <p><strong>${p.agent.name}</strong> — commission ${p.agent.commission}%</p>
+    <p class="muted">${p.agent.network||'Réseau familial'}</p>
+
+    <h3>Agents disponibles</h3>
+    ${availableAgents().map(a=>`<div class="trophy">
+      <strong>${a.name}</strong> — ${a.commission}%<br>${a.network}
+      <button data-act="agent" data-id="${a.id}">Choisir</button>
+    </div>`).join('')}
+
+    ${p.pro?`
+      <h3>Carrière professionnelle</h3>
+      <button data-act="offers">Chercher des offres</button>
+      ${p.transferRequestActive
+        ?`<button class="secondary" data-act="cancelTransfer">Changer d’avis et rester</button>`
+        :`<button class="secondary" data-act="requestTransfer">Demander un transfert</button>`}
+      ${p.contract?`<button class="danger" data-act="terminate">Demander une rupture exceptionnelle</button>`:''}
+    `:''}
+
+    ${activeOffers.length?`<h3>Propositions</h3>${activeOffers.map(o=>`<div class="trophy">
+      <strong>${o.club}</strong> — ${o.level}<br>
+      ${o.loan?`Prêt ${o.purchaseOption?'avec option d’achat':'sans option d’achat'}`:`${o.years} ans — ${o.monthly.toLocaleString('fr-FR')} €/mois — prime ${o.signingBonus.toLocaleString('fr-FR')} €`}<br>
+      Rôle : ${o.role}
+      <button data-act="acceptOffer" data-id="${o.id}">Accepter</button>
+      <button class="secondary" data-act="salary" data-id="${o.id}">Négocier salaire</button>
+      <button class="secondary" data-act="bonus" data-id="${o.id}">Négocier prime</button>
+      <button class="secondary" data-act="role" data-id="${o.id}">Négocier temps de jeu</button>
+      <button class="danger" data-act="rejectOffer" data-id="${o.id}">Refuser</button>
+    </div>`).join('')}`:''}
+
+    ${p.age>=18&&p.amateur?`
+      <h3>Licence régionale</h3>
+      <button data-act="renew">Je reste au ${p.club}</button>
+      <button class="secondary" data-act="trials">Faire des essais ailleurs</button>
+      ${p.clubTrials.map((t,i)=>`<div class="trophy">
+        <strong>${t.name}</strong> — ${t.level}<br>
+        Besoins : ${t.need.join(', ')}<br>${t.message}
+        ${t.status==='pending'?`<button data-act="trial" data-i="${i}">Faire l’essai</button>`:''}
+        ${t.status==='accepted'?`<button data-act="signTrial" data-i="${i}">Signer</button>`:''}
+      </div>`).join('')}
+    `:''}
+
+    <h3>Historique</h3>
+    ${p.transferHistory.length?p.transferHistory.map(t=>`<div class="journal">${t.age} ans — ${t.type} : ${t.from} → ${t.to}</div>`).join(''):'<p>Aucun mouvement.</p>'}
+  </div>`;
+
 }
 
 function render(){
@@ -1436,7 +1681,7 @@ $('deleteBtn').onclick=()=>{
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  ['week','player','standing','journal','future','honours','money'].forEach(
+  ['week','player','standing','journal','future','honours','money','market'].forEach(
     x=>$('tab-'+x).classList.toggle('hidden',x!==b.dataset.tab)
   );
 });
@@ -1564,7 +1809,27 @@ document.addEventListener('click',e=>{
   }
 
   else if(a==='regionalClub'){p.club=b.dataset.club;p.national=false;s.regionalClubChoice=false;log('Nouveau club régional',`Tu rejoins ${p.club}.`);save();render()}
-  else if(a==='nextSeason'){if(s.regionalClubChoice){alert('Choisis d’abord ton club régional.');return}nextSeason();}
+  else if(a==='agent'){chooseAgent(b.dataset.id);save();render()}
+  else if(a==='offers'){generateMarketOffers();save();render()}
+  else if(a==='acceptOffer'){acceptMarketOffer(b.dataset.id);save();render()}
+  else if(a==='rejectOffer'){rejectMarketOffer(b.dataset.id);save();render()}
+  else if(a==='salary'){negotiateMarketOffer(b.dataset.id,'salary');save();render()}
+  else if(a==='bonus'){negotiateMarketOffer(b.dataset.id,'bonus');save();render()}
+  else if(a==='role'){negotiateMarketOffer(b.dataset.id,'role');save();render()}
+  else if(a==='requestTransfer'){requestTransfer();save();render()}
+  else if(a==='cancelTransfer'){cancelTransfer();save();render()}
+  else if(a==='terminate'){terminateContract();save();render()}
+  else if(a==='renew'){renewRegionalLicense();save();render()}
+  else if(a==='trials'){prepareRegionalTrials();save();render()}
+  else if(a==='trial'){runRegionalTrial(+b.dataset.i);save();render()}
+  else if(a==='signTrial'){signRegionalTrial(+b.dataset.i);save();render()}
+  else if(a==='nextSeason'){
+    if(s.regionalClubChoice){alert('Choisis d’abord ton club régional.');return}
+    if(p.age>=18&&p.amateur&&p.regionalDecisionPending&&!p.licenseRenewed){
+      alert('Décide d’abord où tu prends ta licence dans l’onglet Mercato.');return
+    }
+    nextSeason();
+  }
 });
 
 window.addEventListener('error', event => {
