@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V2.2 BÊTA</title>
+<title>TCROMA ACADEMY V2.2.1 BÊTA</title>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#06140d;--card:#10291b;--card2:#183b27;--line:#2b5a3c;--txt:#f5fbf7;--muted:#b7cbbc;--gold:#f4cb47;--red:#8c3434;--green:#2bb768;--blue:#3674c8}
@@ -38,9 +38,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div>
-    <h1>⚽ TCROMA ACADEMY V2.2 BÊTA</h1>
+    <h1>⚽ TCROMA ACADEMY V2.2.1 BÊTA</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
-    <p>De 13 ans aux seniors, avec matchs interactifs, stages, détections et bilans.</p>
+    <p>De 13 ans aux seniors, avec matchs interactifs, stages, détections et bilans.</p><p class="muted">Correctif V2.2.1</p>
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
   </div>
@@ -144,7 +144,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV22';
+const SAVE_KEY = 'tcromaAcademyV221';
 
 const REGIONAL = [
   'EFCV Verfeil','FC Girou',"L'Union Saint-Jean",'FC Lauragais',
@@ -1070,29 +1070,41 @@ function nextSeason(){
 }
 
 function resetWeek(){
-  state.season.round++;
-
-  if(state.season.round===10&&!state.season.midReportDone){
-    state.season.phase='midReport';
-    state.season.midReport=reportHTML('Bilan de mi-saison');
-    state.season.midReportDone=true;
-  }else{
-    state.season.phase='life';
+  if(!state || !state.player || !state.season || !state.league){
+    alert("La sauvegarde est invalide. Commence une nouvelle carrière.");
+    localStorage.removeItem(SAVE_KEY);
+    show('home');
+    return;
   }
 
-  state.season.weekEvent=null;
-  state.season.trainingEvent=null;
-  state.season.preMatch=null;
-  state.season.matchAction=null;
-  state.season.lastResult=null;
-  state.season.forceBench=false;
-  state.season.actionBonus=0;
-  state.season.actionGoal=0;
-  state.season.actionAssist=0;
-  state.season.restDecision=false;
+  const currentRound = Number(state.season.round) || 1;
+  state.season.round = currentRound + 1;
 
-  if(state.player.suspension>0) state.player.suspension--;
-  save();render();
+  state.season.weekEvent = null;
+  state.season.trainingEvent = null;
+  state.season.preMatch = null;
+  state.season.matchAction = null;
+  state.season.lastResult = null;
+  state.season.forceBench = false;
+  state.season.actionBonus = 0;
+  state.season.actionGoal = 0;
+  state.season.actionAssist = 0;
+  state.season.restDecision = false;
+
+  if(state.player.suspension > 0){
+    state.player.suspension--;
+  }
+
+  if(state.season.round === 10 && !state.season.midReportDone){
+    state.season.midReport = reportHTML('Bilan de mi-saison');
+    state.season.midReportDone = true;
+    state.season.phase = 'midReport';
+  }else{
+    state.season.phase = 'life';
+  }
+
+  save();
+  render();
 }
 
 function renderHeader(){
@@ -1356,9 +1368,20 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
 
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');
-  if(!b||!state)return;
+  if(!b || !state) return;
 
-  const a=b.dataset.act,p=state.player,s=state.season;
+  e.preventDefault();
+
+  const a=b.dataset.act;
+  const p=state.player;
+  const s=state.season;
+
+  if(!p || !s){
+    alert("Erreur de sauvegarde. Commence une nouvelle carrière.");
+    localStorage.removeItem(SAVE_KEY);
+    show('home');
+    return;
+  }
 
   if(a==='preseasonChoice'){
     const option=preseasonOptions()[+b.dataset.i];
@@ -1446,9 +1469,12 @@ document.addEventListener('click',e=>{
   }
 
   else if(a==='injuredAbsent'){
-    simulateAbsent(`Blessure : ${p.injury}`,15);
-    p.injuryWeeks--;
-    if(p.injuryWeeks<=0){p.injuryWeeks=0;p.injury=''}
+    const injuryName = p.injury;
+    p.injuryWeeks = Math.max(0, (Number(p.injuryWeeks) || 1) - 1);
+    if(p.injuryWeeks === 0){
+      p.injury = '';
+    }
+    simulateAbsent(`Blessure : ${injuryName}`,15);
   }
 
   else if(a==='suspendedAbsent'){
