@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TCROMA ACADEMY</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page centre">
+    <section class="carte hero">
+      <div class="sur-titre">TCROMA Studio présente</div>
+      <h1>⚽ TCROMA ACADEMY</h1>
+      <h2>Ta carrière. Tes choix. Ton histoire.</h2>
+      <p>Tu as 13 ans. Le football à 11 commence aujourd'hui.</p>
+
+      <button onclick="window.location.href='creation.html'">
+        Nouvelle carrière
+      </button>
+
+      <button class="secondaire" id="continuer">
+        Continuer
+      </button>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById("continuer").addEventListener("click", () => {
+      const prenom = localStorage.getItem("prenom");
+
+      if (!prenom) {
+        alert("Aucune carrière sauvegardée.");
+        return;
+      }
+
+      window.location.href = "carriere.html";
+    });
+  </script>
+</body>
+</html>

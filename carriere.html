@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrière - TCROMA ACADEMY</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <section class="carte entete-joueur">
+      <div>
+        <div class="sur-titre">TCROMA ACADEMY</div>
+        <h1 id="joueur"></h1>
+        <p id="resumeJoueur"></p>
+      </div>
+      <div class="badges">
+        <span class="badge" id="age"></span>
+        <span class="badge" id="journee"></span>
+      </div>
+    </section>
+
+    <nav class="onglets">
+      <button class="onglet actif" data-onglet="semaine">Semaine</button>
+      <button class="onglet" data-onglet="joueur">Joueur</button>
+      <button class="onglet" data-onglet="classement">Classement</button>
+      <button class="onglet" data-onglet="journal">Journal</button>
+      <button class="onglet" data-onglet="avenir">Avenir</button>
+    </nav>
+
+    <section id="onglet-semaine" class="contenu-onglet">
+      <div id="blocBlessure" class="carte cache">
+        <h2>🚑 Joueur blessé</h2>
+        <p id="messageBlessure"></p>
+        <button id="passerJourneeBlessure">Passer la journée</button>
+      </div>
+
+      <div id="blocEvenementSemaine" class="carte cache">
+        <h2 id="titreEvenementSemaine"></h2>
+        <p id="texteEvenementSemaine"></p>
+        <div id="choixEvenementSemaine"></div>
+      </div>
+
+      <div id="blocChoixEntrainement" class="carte cache">
+        <h2 id="titreEvenementEntrainement"></h2>
+        <p id="texteEvenementEntrainement"></p>
+        <button id="choixAllerEntrainement"></button>
+        <button class="secondaire" id="choixNePasAllerEntrainement"></button>
+      </div>
+
+      <div id="blocEntrainement" class="carte cache">
+        <h2>Entraînement</h2>
+        <p class="muted">Ton choix influence ta progression, ta fatigue et le risque de blessure.</p>
+
+        <select id="choixEntrainement">
+          <option value="">Choisir un entraînement</option>
+          <option value="technique">Technique</option>
+          <option value="vitesse">Vitesse</option>
+          <option value="physique">Physique</option>
+          <option value="mental">Mental</option>
+          <option value="recuperation">Récupération</option>
+        </select>
+
+        <button id="validerEntrainement">Valider l'entraînement</button>
+        <div id="resultatEntrainement" class="message"></div>
+      </div>
+
+      <div id="blocAvantMatch" class="carte cache">
+        <h2 id="titreAvantMatch"></h2>
+        <p id="texteAvantMatch"></p>
+        <div id="choixAvantMatch"></div>
+      </div>
+
+      <div id="blocActionMatch" class="carte cache">
+        <h2>Action pendant le match</h2>
+        <p id="minuteActionMatch" class="gros"></p>
+        <p id="texteActionMatch"></p>
+        <div id="choixActionMatch"></div>
+      </div>
+
+      <div id="blocRepos" class="carte cache">
+        <h2>Fatigue importante</h2>
+        <p>
+          Tu sembles épuisé. Tu peux demander au coach de ne pas être retenu
+          pour ce match et récupérer 25 points de fatigue.
+        </p>
+        <button id="demanderRepos">Je demande à ne pas être retenu</button>
+        <button class="secondaire" id="jouerMalgreFatigue">Je veux jouer quand même</button>
+      </div>
+
+      <div id="blocMatchAbsent" class="carte cache">
+        <h2>Match joué sans toi</h2>
+        <div id="scoreMatchAbsent" class="score"></div>
+        <p id="texteMatchAbsent"></p>
+        <h3>Classement après la journée</h3>
+        <div id="classementMatchAbsent"></div>
+        <button id="journeeSuivanteAbsent">Journée suivante</button>
+      </div>
+
+      <div id="blocMatch" class="carte cache">
+        <h2>Match de championnat</h2>
+        <p id="afficheMatch" class="gros"></p>
+        <p id="messageAvantMatch"></p>
+        <button id="jouerMatch">Jouer le match</button>
+      </div>
+
+      <div id="blocResultat" class="carte cache">
+        <h2>Résultat</h2>
+        <div id="scoreMatch" class="score"></div>
+        <div id="texteResultat" class="message"></div>
+
+        <h3>Classement après la journée</h3>
+        <div id="classementApresMatch"></div>
+
+        <button id="journeeSuivante">Journée suivante</button>
+      </div>
+
+      <div id="blocFinSaison" class="carte cache">
+        <h2>🏁 Fin de saison</h2>
+        <div id="bilanSaison" class="message"></div>
+        <div id="classementFinal"></div>
+
+        <div id="blocSelection" class="message cache">
+          <h3>🇫🇷 Convocation</h3>
+          <p id="texteSelection"></p>
+          <button id="accepterSelection">Accepter la sélection</button>
+        </div>
+
+        <div id="blocOffre" class="message cache">
+          <h3>📞 Offre de transfert</h3>
+          <p id="texteOffre"></p>
+          <button id="accepterOffre">Accepter l'offre</button>
+          <button class="secondaire" id="refuserOffre">Refuser l'offre</button>
+        </div>
+
+        <button id="nouvelleSaison">Passer à la saison suivante</button>
+      </div>
+    </section>
+
+    <section id="onglet-joueur" class="contenu-onglet cache">
+      <div class="carte">
+        <h2>État du joueur</h2>
+        <div id="etatJoueur"></div>
+      </div>
+
+      <div class="carte">
+        <h2>Qualités</h2>
+        <div id="qualitesJoueur"></div>
+      </div>
+
+      <div class="carte">
+        <h2>Statistiques personnelles</h2>
+        <div id="statsCarriere"></div>
+      </div>
+    </section>
+
+    <section id="onglet-classement" class="contenu-onglet cache">
+      <div class="carte">
+        <h2>Classement du championnat</h2>
+        <div id="classementPermanent"></div>
+      </div>
+    </section>
+
+    <section id="onglet-journal" class="contenu-onglet cache">
+      <div class="carte">
+        <h2>Journal de carrière</h2>
+        <div id="journalCarriere"></div>
+      </div>
+    </section>
+
+    <section id="onglet-avenir" class="contenu-onglet cache">
+      <div class="carte">
+        <h2>Avenir du joueur</h2>
+        <div id="avenirJoueur"></div>
+      </div>
+    </section>
+
+    <section class="carte">
+      <button class="secondaire" onclick="window.location.href='index.html'">Retour à l'accueil</button>
+      <button class="danger" id="recommencer">Supprimer cette carrière</button>
+    </section>
+  </main>
+
+  <script src="donnees.js"></script>
+  <script src="sauvegarde.js"></script>
+  <script src="joueur.js"></script>
+  <script src="championnat.js"></script>
+  <script src="entrainement.js"></script>
+  <script src="match.js"></script>
+  <script src="mercato.js"></script>
+  <script src="interface.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
