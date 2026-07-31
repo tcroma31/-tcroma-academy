@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V3.1 — LE MERCATO</title>
+<title>TCROMA ACADEMY V3.2 — LE FOOTBALL AMATEUR</title>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#06140d;--card:#10291b;--card2:#183b27;--line:#2b5a3c;--txt:#f5fbf7;--muted:#b7cbbc;--gold:#f4cb47;--red:#8c3434;--green:#2bb768;--blue:#3674c8}
@@ -38,9 +38,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div>
-    <h1>⚽ TCROMA ACADEMY V3.1 — LE MERCATO</h1>
+    <h1>⚽ TCROMA ACADEMY V3.2 — LE FOOTBALL AMATEUR</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
-    <p>De 13 ans aux seniors : matchs, contrats, agents, prêts, essais et mercato.</p><p class="muted">Version 3.1 — Le Mercato</p>
+    <p>De 13 ans aux seniors : football amateur, derbys, supporters, mercato et carrière.</p><p class="muted">Version 3.2 — Le Football Amateur</p>
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
   </div>
@@ -144,7 +144,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV31';
+const SAVE_KEY = 'tcromaAcademyV32';
 
 const REGIONAL = [
   'EFCV Verfeil','FC Girou',"L'Union Saint-Jean",'FC Lauragais',
@@ -419,7 +419,17 @@ function statLine(label,v){
 }
 
 function apply(effects){
-  for(const [k,v] of Object.entries(effects||{})){
+  for(const [k,rawValue] of Object.entries(effects||{})){
+    let v=rawValue;
+
+    if(k==='fatigue' && v>0){
+      const form=state.player.form||50;
+      if(form>=80) v=Math.ceil(v*.42);
+      else if(form>=70) v=Math.ceil(v*.52);
+      else if(form>=60) v=Math.ceil(v*.62);
+      else v=Math.ceil(v*.75);
+    }
+
     if(['tech','speed','physical','mental','fatigue','form','coach','morale',
         'reputation','school','parents','locker','president'].includes(k)){
       state.player[k]=clamp((state.player[k]||0)+v);
@@ -449,6 +459,97 @@ function preseasonOptions(){
     {name:'Vacances et repos',desc:'Tu reviens totalement reposé et en pleine forme.',admitted:true,effects:{fatigue:-100,morale:10,form:35}},
     {name:'Tu flânes tout l’été',desc:'Tu récupères, mais sans vraie préparation.',admitted:true,effects:{fatigue:-100,morale:7,form:-5,coach:-2}}
   ];
+}
+
+
+const AMATEUR_DERBIES = [
+  {clubs:['EFCV Verfeil','FC Lauragais'],name:'Derby du Lauragais'},
+  {clubs:['FC Girou',"L'Union Saint-Jean"],name:'Derby de l’Est toulousain'},
+  {clubs:['FC Lavaur','Albi Marssac'],name:'Derby tarnais'},
+  {clubs:['Balma SC','Castanet'],name:'Derby métropolitain'}
+];
+
+const AMATEUR_EVENTS = [
+  {
+    title:'Les poteaux ont disparu',
+    text:'Le matin du derby, les poteaux du terrain ont mystérieusement été sciés. Le président cherche une solution.',
+    choices:[
+      ['J’aide à installer des buts provisoires',{reputation:4,locker:3,fatigue:2}],
+      ['Je filme pour les réseaux sociaux',{reputation:2,president:-2}],
+      ['Je reste concentré au vestiaire',{mental:2}],
+      ['Je demande le report du match',{president:-1,morale:1}]
+    ]
+  },
+  {
+    title:'Synthétique libre, herbe détrempée',
+    text:'Il pleut depuis trois jours, mais le coach veut jouer sur l’herbe.',
+    choices:[
+      ['Je respecte la décision',{coach:2,mental:1}],
+      ['Je propose calmement le synthétique',{mental:2,coach:0}],
+      ['Je critique devant tout le monde',{coach:-5,locker:1,forceBench:true}],
+      ['Je prépare les crampons vissés',{physical:1,mental:1}]
+    ]
+  },
+  {
+    title:'Prime de victoire très amateur',
+    text:'Le président promet saucisse-frites et deux boissons en cas de victoire.',
+    choices:[
+      ['Je motive tout le vestiaire',{locker:4,morale:4}],
+      ['Je demande une vraie prime',{president:-4,reputation:-1}],
+      ['Je plaisante avec le président',{president:2,locker:2}],
+      ['Je reste concentré sur le match',{mental:2}]
+    ]
+  },
+  {
+    title:'Les maillots sont au local',
+    text:'À trente minutes du coup d’envoi, personne n’a pris le sac de maillots.',
+    choices:[
+      ['Je retourne les chercher',{reputation:3,fatigue:2}],
+      ['J’appelle un bénévole',{president:1}],
+      ['Je laisse les dirigeants gérer',{morale:-1}],
+      ['Je propose de jouer avec les chasubles',{locker:2,morale:2}]
+    ]
+  },
+  {
+    title:'Le car tombe en panne',
+    text:'Le minibus s’arrête sur le bord de la route avant un déplacement.',
+    choices:[
+      ['J’organise les voitures',{reputation:4,locker:4,mental:2}],
+      ['J’attends les dirigeants',{morale:-1}],
+      ['Je pars avec trois coéquipiers',{locker:2,fatigue:1}],
+      ['Je demande le report',{president:-2,coach:-1}]
+    ]
+  },
+  {
+    title:'Le chien traverse le terrain',
+    text:'Un chien échappe à son propriétaire et interrompt le derby.',
+    choices:[
+      ['Je l’attrape doucement',{reputation:3,morale:3}],
+      ['Je plaisante avec les supporters',{locker:2,morale:2}],
+      ['Je reste concentré',{mental:2}],
+      ['Je demande à l’arbitre de reprendre vite',{coach:1}]
+    ]
+  },
+  {
+    title:'Nouveau coach en seniors',
+    text:'Le nouveau coach annonce que personne n’est titulaire d’avance.',
+    choices:[
+      ['Je travaille encore plus',{mental:3,form:3,fatigue:2}],
+      ['Je demande son projet de jeu',{coach:2,mental:1}],
+      ['Je reste méfiant',{morale:-1}],
+      ['Je lui dis que je veux être un leader',{coach:1,locker:2,mental:2}]
+    ]
+  }
+];
+
+function amateurEvent(){
+  return pick(AMATEUR_EVENTS);
+}
+
+function currentDerby(){
+  const m=teamMatch();
+  if(!m)return null;
+  return AMATEUR_DERBIES.find(d=>d.clubs.includes(m.home)&&d.clubs.includes(m.away))||null;
 }
 
 function ageEventPool(){
@@ -519,6 +620,8 @@ function ageEventPool(){
     }
   ];
 
+  if(Math.random()<0.60) return [amateurEvent()];
+
   return [
     {
       title:'Déplacement senior compliqué',
@@ -562,8 +665,8 @@ function trainingEvent(){
   const p=state.player;
   if(p.fatigue>=60 || p.form<=50){
     return {title:'⚠️ Le coach surveille ton état',text:`Fatigue ${Math.round(p.fatigue)} / Forme ${Math.round(p.form)}.`,choices:[
-      ['Séance allégée : je récupère',{fatigue:-10,form:4,forceBench:true}],
-      ['Repos complet',{fatigue:-18,form:7,coach:1,forceBench:true}],
+      ['Séance allégée : je récupère',{fatigue:-15,form:6,forceBench:true}],
+      ['Repos complet',{fatigue:-24,form:9,coach:1,forceBench:true}],
       ['Je continue normalement',{fatigue:7,mental:1,risk:.025}],
       ['Travail technique léger',{tech:1,fatigue:-5,forceBench:true}]
     ]};
@@ -571,7 +674,7 @@ function trainingEvent(){
   return pick([
     {title:'Atelier finition',text:'Frappes, reprises et face-à-face.',choices:[['Je travaille la précision',{tech:2,fatigue:6}],['Je frappe en puissance',{physical:1,tech:1,fatigue:7}],['Je travaille mon mauvais pied',{tech:2,mental:1,fatigue:7}],['Je reste après la séance',{tech:3,fatigue:11,coach:2}]]},
     {title:'Travail tactique',text:'Déplacements et lecture du jeu.',choices:[['J’écoute toutes les consignes',{mental:2,coach:2}],['Je pose des questions',{mental:2,coach:1}],['Je guide mes coéquipiers',{mental:1,locker:3}],['Je reste passif',{coach:-3,form:-1}]]},
-    {title:'Séance vitesse',text:'Sprints et changements de direction.',choices:[['Je donne tout',{speed:2,fatigue:9}],['Je gère mes efforts',{speed:1,fatigue:5}],['Je travaille les départs',{speed:2,mental:1,fatigue:7}],['Je demande une série en plus',{speed:3,fatigue:12,coach:2}]]},
+    {title:'Séance vitesse',text:'Sprints et changements de direction.',choices:[['Je donne tout',{speed:2,fatigue:9}],['Je gère mes efforts',{speed:1,form:5,fatigue:-5,mental:1}],['Je travaille les départs',{speed:2,mental:1,fatigue:7}],['Je demande une série en plus',{speed:3,fatigue:12,coach:2}]]},
     {title:'Opposition interne',text:'Titulaires contre remplaçants.',choices:[['Je joue simple',{mental:1,coach:2}],['Je tente des gestes difficiles',{tech:2,coach:-1}],['Je presse sans arrêt',{physical:2,fatigue:10}],['Je dirige mon équipe',{mental:2,locker:2}]]},
     {title:'Le coach te félicite',text:'Il remarque ta bonne forme et ton sérieux.',choices:[['Je le remercie',{coach:3,mental:1}],['Je dis que le travail continue',{coach:4,mental:2}],['Je chambre mes coéquipiers',{locker:1,coach:-1}],['Je reste concentré',{form:2}]]},
     {title:'Le coach te prévient',text:'Il trouve que tu bavardes trop.',choices:[['Je m’excuse',{coach:2,mental:1}],['Je demande quoi améliorer',{coach:3,mental:2}],['Je dis que tout le monde parle',{coach:-3,locker:1}],['Je recommence l’exercice',{coach:3,fatigue:2}]]}
@@ -762,7 +865,7 @@ function matchAction(){
 
 function maybeInjury(source){
   const p=state.player;
-  let risk=.004+p.fatigue/(source==='match'?1800:2400)+(p.physical<42?.012:0);
+  let risk=.002+p.fatigue/(source==='match'?3400:4600)+(p.physical<40?.007:0);
   if(Math.random()>=risk) return false;
   const b=pick([
     {n:'contracture',w:1},{n:'élongation',w:2},
@@ -773,27 +876,38 @@ function maybeInjury(source){
   return true;
 }
 
-function simulateAbsent(reason,recovery=0){
+function simulateAbsent(reason,recovery=10){
   state = normalizeState(state);
   if(!state) return;
 
-  const m = teamMatch();
+  const m=teamMatch();
   if(!m){
     alert("Aucun match trouvé. Le calendrier va être reconstruit.");
-    const p = state.player;
-    const level = p.national ? 'National jeunes' : (p.age >= 18 ? 'Seniors régionaux' : 'Régional jeunes');
-    state.league = makeLeague(p.club, level);
-    save();
-    render();
-    return;
+    const p=state.player;
+    const level=p.national?'National jeunes':(p.age>=18?'Seniors régionaux':'Régional jeunes');
+    state.league=makeLeague(p.club,level);
+    save();render();return;
   }
-  let h=rand(0,3),a=rand(0,3);
+
+  const before=state.player.fatigue;
+  const h=rand(0,3),a=rand(0,3);
   record(m.home,m.away,h,a);
   simulateOthers();
+
   state.player.fatigue=clamp(state.player.fatigue-recovery);
-  state.season.lastResult={home:m.home,away:m.away,h,a,absent:true,reason};
+
+  if(reason.includes('Repos')) state.player.form=clamp(state.player.form+5);
+  else if(reason.includes('Suspension')) state.player.form=clamp(state.player.form-1);
+  else if(reason.includes('Blessure')) state.player.form=clamp(state.player.form-2);
+  else state.player.form=clamp(state.player.form+2);
+
+  const recovered=Math.max(0,before-state.player.fatigue);
+
+  state.season.lastResult={
+    home:m.home,away:m.away,h,a,absent:true,reason,fatigueChange:-recovered
+  };
   state.season.phase='result';
-  log('Match sans toi',`${m.home} ${h}-${a} ${m.away}. ${reason}`);
+  log('Match sans toi',`${m.home} ${h}-${a} ${m.away}. ${reason}. Récupération : ${recovered}.`);
   save();render();
 }
 
@@ -861,7 +975,22 @@ function playMatch(){
 
   p.matches++;p.goals+=g;p.assists+=as;p.sumRating+=note;
   if(note>=8)p.motm++;
-  p.fatigue=clamp(p.fatigue+rand(7,11));
+  const fatigueBeforeMatch=p.fatigue;
+  let matchFatigue;
+
+  if(!starter){
+    matchFatigue=rand(1,2);
+    p.form=clamp(p.form+1);
+  }else if(r==='GK'){
+    matchFatigue=rand(1,3);
+  }else{
+    matchFatigue=rand(3,6);
+  }
+
+  if(p.form>=80) matchFatigue=Math.max(0,matchFatigue-2);
+  else if(p.form>=70) matchFatigue=Math.max(1,matchFatigue-1);
+
+  p.fatigue=clamp(p.fatigue+matchFatigue);
 
   if(r==='GK'){
     let conceded=m.home===p.club?a:h;
@@ -872,7 +1001,8 @@ function playMatch(){
   maybeInjury('match');
 
   state.season.lastResult={
-    home:m.home,away:m.away,h,a,absent:false,starter,note,g,as,saves,pen,card
+    home:m.home,away:m.away,h,a,absent:false,starter,note,g,as,saves,pen,card,
+    matchFatigue,fatigueBefore:fatigueBeforeMatch,fatigueAfter:p.fatigue
   };
   state.season.phase='result';
   log('Match',`${m.home} ${h}-${a} ${m.away}, note ${note.toFixed(1)}.`);
@@ -1348,6 +1478,9 @@ function resetWeek(){
 
   if(p.suspension > 0) p.suspension--;
 
+  const naturalRecovery=p.form>=75?7:p.form>=60?5:3;
+  p.fatigue=clamp(p.fatigue-naturalRecovery);
+
   if(s.round === 10 && !s.midReportDone){
     s.midReport = reportHTML('Bilan de mi-saison');
     s.midReportDone = true;
@@ -1380,6 +1513,8 @@ function renderPerformance(r){
   }
 
   if(r.card)x+=`<br>${r.card}`;
+  x+=`<br>Fatigue gagnée : +${r.matchFatigue||0}`;
+  if(!r.starter)x+=`<br>Comme remplaçant, tu récupères mieux.`;
   return x;
 }
 
@@ -1465,6 +1600,14 @@ function renderWeek(){
   }
 
   if(s.phase==='prematch'){
+    if(state.league.level==='Seniors régionaux'){
+      const derby=currentDerby();
+      if(derby && !s.derbyShown){
+        s.derbyShown=true;
+        s.lastActionMessage=`🔥 ${derby.name} : supporters, tambours et buvette pleine.`;
+        log('Derby',s.lastActionMessage);
+      }
+    }
     preMatchEvent();
     if(s.preMatch){
       box.innerHTML=`<div class="card choice">
@@ -1483,6 +1626,7 @@ function renderWeek(){
     matchAction();
     const a=s.matchAction;
     box.innerHTML=`<div class="card choice">
+      ${s.lastActionMessage?`<div class="message">${s.lastActionMessage}</div>`:''}
       <h2>⚽ ${a.minute}e minute</h2>
       <p class="big">${a.text}</p>
       ${a.choices.map((c,i)=>`
@@ -1569,6 +1713,7 @@ function renderTabs(){
     <p>Pôle Castelmaurou : <strong>${p.pole?'Retenu':p.poleAttempted?'Non retenu':'À venir'}</strong></p>
     <p>Centre de formation : <strong>${p.academy}</strong></p>
     <p>Niveau actuel : <strong>${state.league.level}</strong></p>
+    ${state.league.level==='Seniors régionaux'?`<p>Statut : <strong>Football amateur</strong></p><p>Popularité locale : <strong>${Math.round((p.reputation+p.locker+p.president)/3)}/100</strong></p>`:''}
     <p>Tournois : ${p.tournaments.join(', ')||'Aucun'}</p>
     <p>Titres : ${p.titles.join(', ')||'Aucun'}</p>
   </div>`;
