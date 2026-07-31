@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V2.3 STABLE</title>
+<title>TCROMA ACADEMY V3.0</title>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#06140d;--card:#10291b;--card2:#183b27;--line:#2b5a3c;--txt:#f5fbf7;--muted:#b7cbbc;--gold:#f4cb47;--red:#8c3434;--green:#2bb768;--blue:#3674c8}
@@ -28,7 +28,7 @@ label{display:block;margin-top:13px;color:var(--muted)}
 table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:center}th:first-child,td:first-child{text-align:left}.mine{background:rgba(244,203,71,.16);font-weight:700}
 .stat{display:grid;grid-template-columns:155px 1fr 45px;gap:10px;align-items:center;margin:10px 0}.bar{height:10px;background:#284a35;border-radius:999px;overflow:hidden}.bar span{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--gold))}
 .journal{padding:12px 0;border-bottom:1px solid var(--line)}.choice button{margin-top:8px}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:var(--card2);margin:3px}.positive{color:#83e3a7}.negative{color:#ff9b9b}
-.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.report-box{padding:14px;background:#0a1e13;border-radius:14px;border:1px solid var(--line)}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.trophy{padding:12px;border:1px solid var(--line);border-radius:12px;background:#0a1e13;margin:8px 0}.money{font-size:22px;font-weight:800}.report-box{padding:14px;background:#0a1e13;border-radius:14px;border:1px solid var(--line)}
 @media(max-width:700px){.grid2,.grid3,.report-grid{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}.stat{grid-template-columns:110px 1fr 38px}.hero .card{padding:24px}}
 </style>
 </head>
@@ -38,9 +38,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div>
-    <h1>⚽ TCROMA ACADEMY V2.3 STABLE</h1>
+    <h1>⚽ TCROMA ACADEMY V3.0</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
-    <p>De 13 ans aux seniors, avec matchs interactifs, stages, détections et bilans.</p><p class="muted">Version 2.3 STABLE</p>
+    <p>De 13 ans aux seniors, avec matchs interactifs, stages, détections et bilans.</p><p class="muted">Version 3.0</p>
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
   </div>
@@ -123,14 +123,14 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
     <button class="tab" data-tab="player">Joueur</button>
     <button class="tab" data-tab="standing">Classement</button>
     <button class="tab" data-tab="journal">Journal</button>
-    <button class="tab" data-tab="future">Avenir</button>
+    <button class="tab" data-tab="future">Avenir</button><button class="tab" data-tab="honours">Palmarès</button><button class="tab" data-tab="money">Finances</button>
   </nav>
 
   <section id="tab-week"></section>
   <section id="tab-player" class="hidden"></section>
   <section id="tab-standing" class="hidden"></section>
   <section id="tab-journal" class="hidden"></section>
-  <section id="tab-future" class="hidden"></section>
+  <section id="tab-future" class="hidden"></section><section id="tab-honours" class="hidden"></section><section id="tab-money" class="hidden"></section>
 
   <div class="card">
     <button id="saveBtn" class="secondary">Sauvegarder</button>
@@ -144,7 +144,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV23';
+const SAVE_KEY = 'tcromaAcademyV30';
 
 const REGIONAL = [
   'EFCV Verfeil','FC Girou',"L'Union Saint-Jean",'FC Lauragais',
@@ -219,6 +219,15 @@ function normalizeState(data){
   p.history = Array.isArray(p.history) ? p.history : [];
   p.titles = Array.isArray(p.titles) ? p.titles : [];
   p.tournaments = Array.isArray(p.tournaments) ? p.tournaments : [];
+  p.awards = Array.isArray(p.awards) ? p.awards : [];
+  p.honours = Array.isArray(p.honours) ? p.honours : [];
+  p.offers = Array.isArray(p.offers) ? p.offers : [];
+  p.balance = Number(p.balance) || 0;
+  p.totalIncome = Number(p.totalIncome) || 0;
+  p.totalExpenses = Number(p.totalExpenses) || 0;
+  p.careerPath = p.careerPath || 'Jeunes';
+  p.agent = p.agent || {name:'Famille',level:0,commission:0};
+  p.poleStatus = p.poleStatus || (p.pole ? 'Retenu' : p.poleAttempted ? 'Non retenu' : 'À venir');
 
   s.round = Math.max(1, Number(s.round) || 1);
   s.phase = [
@@ -277,7 +286,7 @@ function makeLeague(club,level){
   if(level==='National jeunes'){
     clubs=[...NATIONAL];
     if(!clubs.includes(club)) clubs[0]=club;
-  }else if(level==='Seniors régionaux'){
+  }else if(level==='Championnat professionnel'){const proClubs=['Toulouse FC','Montpellier HSC','Rodez AF','Pau FC','AS Monaco','Lille OSC','Bordeaux','Nîmes','Guingamp','Grenoble'];clubs=[club,...proClubs.filter(c=>c!==club)].slice(0,10)}else if(level==='Seniors régionaux'){
     clubs=[club,...SENIOR_REGIONAL.filter(c=>c!==club)].slice(0,10);
   }else{
     clubs=[club,...REGIONAL.filter(c=>c!==club)].slice(0,10);
@@ -300,7 +309,7 @@ function newState(first,last,pos,club,nationality,secondNationality){
     internationalTeam:'Aucune',internationalCaps:0,internationalGoals:0,
     profile:'Non défini',
     styleCounters:{creator:0,warrior:0,artist:0,finisher:0,leader:0},
-    seasonStartStats:null
+    seasonStartStats:null,careerPath:'Jeunes',pro:false,latePro:false,amateur:false,contract:null,offers:[],agent:{name:'Famille',level:0,commission:0},balance:0,totalIncome:0,totalExpenses:0,awards:[],honours:[],seasonAwards:[],poleStatus:'À venir',poleScore:0
   };
 
   return {
@@ -310,7 +319,7 @@ function newState(first,last,pos,club,nationality,secondNationality){
       preMatch:null,matchAction:null,lastResult:null,absenceReason:'',
       seasonProcessed:false,midReportDone:false,endReport:null,midReport:null,
       preseasonDone:false,forceBench:false,actionBonus:0,
-      actionGoal:0,actionAssist:0
+      actionGoal:0,actionAssist:0,lastActionMessage:'',regionalClubChoice:false
     },
     league:makeLeague(club,'Régional jeunes')
   };
@@ -399,55 +408,23 @@ function apply(effects){
 
 function preseasonOptions(){
   const p=state.player;
+  if(p.age>=18){
+    return [
+      {name:'Coach personnel',desc:'Travail ciblé avec un préparateur individuel.',admitted:true,effects:{tech:2,speed:2,physical:2,fatigue:8,form:4}},
+      {name:'Préparation individuelle',desc:'Course, ballon et musculation en autonomie.',admitted:true,effects:{physical:2,mental:2,fatigue:5,form:5}},
+      {name:'Plage et soleil',desc:'Tu récupères et reviens à 100 %.',admitted:true,effects:{fatigue:-100,morale:12,form:35}},
+      {name:'Tu flânes sans programme',desc:'Repos total, mais retour avec peu de rythme.',admitted:true,effects:{fatigue:-100,morale:8,form:-6,coach:-2}}
+    ];
+  }
   return [
-    {
-      name:'Préparation avec ton père',
-      desc:'Footings, frappes et conduite de balle. Gratuite et familiale.',
-      admitted:true,
-      effects:{tech:1,mental:2,parents:4,fatigue:8}
-    },
-    {
-      name:'Coach personnel',
-      desc:'Travail individuel intensif sur ton point faible.',
-      admitted:true,
-      effects:{tech:2,speed:2,physical:1,fatigue:12}
-    },
-    {
-      name:'Stage VFC à Castelmaurou',
-      desc:'Stage exigeant avec tests et oppositions.',
-      admitted:(p.tech+p.speed+p.physical+p.mental)/4>=52,
-      effects:{tech:2,physical:2,mental:2,fatigue:14,reputation:2}
-    },
-    {
-      name:'Stage Jean-Michel Larqué à Bordeaux',
-      desc:'Vision, qualité de passe et intelligence de jeu.',
-      admitted:p.tech>=55||p.reputation>=12,
-      effects:{tech:3,mental:3,fatigue:10,reputation:2}
-    },
-    {
-      name:'Académie Hidalgo à Cannes',
-      desc:'Technique individuelle et préparation physique.',
-      admitted:p.reputation>=18||p.age>=15,
-      effects:{tech:2,speed:2,physical:2,fatigue:13,reputation:3}
-    },
-    {
-      name:'PSG Academy',
-      desc:'Très haut niveau, admission difficile.',
-      admitted:p.reputation>=35&&p.tech>=62,
-      effects:{tech:4,speed:2,mental:2,fatigue:16,reputation:6}
-    },
-    {
-      name:'Vacances et repos',
-      desc:'Tu coupes vraiment pour revenir frais.',
-      admitted:true,
-      effects:{fatigue:-35,morale:8,form:5}
-    },
-    {
-      name:'Tu flânes tout l’été',
-      desc:'Repos total, mais retour avec peu de rythme.',
-      admitted:true,
-      effects:{fatigue:-25,morale:5,form:-8,coach:-2}
-    }
+    {name:'Préparation avec ton père',desc:'Footings, frappes et conduite de balle.',admitted:true,effects:{tech:1,mental:2,parents:4,fatigue:5}},
+    {name:'Coach personnel',desc:'Travail individualisé sur tes points faibles.',admitted:true,effects:{tech:2,speed:2,physical:1,fatigue:7}},
+    {name:'Stage VFC à Castelmaurou',desc:'Stage exigeant avec tests et oppositions.',admitted:(p.tech+p.speed+p.physical+p.mental)/4>=54,effects:{tech:2,physical:2,mental:2,fatigue:8,reputation:2}},
+    {name:'Stage Jean-Michel Larqué à Bordeaux',desc:'Vision et qualité de passe.',admitted:p.tech>=56||p.reputation>=14,effects:{tech:3,mental:3,fatigue:7,reputation:2}},
+    {name:'Académie Hidalgo à Cannes',desc:'Technique individuelle et préparation physique.',admitted:p.reputation>=20||p.age>=15,effects:{tech:2,speed:2,physical:2,fatigue:8,reputation:3}},
+    {name:'PSG Academy',desc:'Très haut niveau, admission difficile.',admitted:p.reputation>=40&&p.tech>=65,effects:{tech:4,speed:2,mental:2,fatigue:9,reputation:6}},
+    {name:'Vacances et repos',desc:'Tu reviens totalement reposé et en pleine forme.',admitted:true,effects:{fatigue:-100,morale:10,form:35}},
+    {name:'Tu flânes tout l’été',desc:'Tu récupères, mais sans vraie préparation.',admitted:true,effects:{fatigue:-100,morale:7,form:-5,coach:-2}}
   ];
 }
 
@@ -560,49 +537,22 @@ function createWeekEvent(){
 
 function trainingEvent(){
   const p=state.player;
-  const events=[
-    {
-      title:'Le coach te félicite',
-      text:'Il remarque ta bonne forme et ton sérieux.',
-      choices:[
-        ['Je le remercie',{coach:3,mental:1}],
-        ['Je dis que le travail continue',{coach:4,mental:2}],
-        ['Je chambre mes coéquipiers',{locker:1,coach:-1}],
-        ['Je reste concentré',{form:2}]
-      ]
-    },
-    {
-      title:'Le coach te prévient',
-      text:'Il trouve que tu bavardes trop pendant ses consignes.',
-      choices:[
-        ['Je m’excuse',{coach:2,mental:1}],
-        ['Je dis que tout le monde parle',{coach:-3,locker:1}],
-        ['Je ne réponds pas',{morale:-1}],
-        ['Je propose de recommencer l’exercice',{coach:3,fatigue:3}]
-      ]
-    },
-    {
-      title:'Vestiaire laissé sale',
-      text:'Le coach impose une punition collective.',
-      choices:[
-        ['Je reste nettoyer',{coach:3,locker:2,fatigue:4}],
-        ['Je pars discrètement',{coach:-4,reputation:-1}],
-        ['Je convaincs tout le monde de ranger',{locker:4,mental:2}],
-        ['Je dis que ce n’est pas moi',{locker:-2,coach:-2}]
-      ]
-    },
-    {
-      title:'Séance intense',
-      text:'Le coach organise des duels et des courses.',
-      choices:[
-        ['Je donne tout',{physical:2,mental:1,fatigue:12}],
-        ['Je gère mes efforts',{physical:1,fatigue:6}],
-        ['Je triche sur les courses',{coach:-4,form:-2}],
-        ['Je motive le groupe',{mental:2,locker:3,fatigue:8}]
-      ]
-    }
-  ];
-  return pick(events);
+  if(p.fatigue>=60 || p.form<=50){
+    return {title:'⚠️ Le coach surveille ton état',text:`Fatigue ${Math.round(p.fatigue)} / Forme ${Math.round(p.form)}.`,choices:[
+      ['Séance allégée : je récupère',{fatigue:-10,form:4,forceBench:true}],
+      ['Repos complet',{fatigue:-18,form:7,coach:1,forceBench:true}],
+      ['Je continue normalement',{fatigue:7,mental:1,risk:.025}],
+      ['Travail technique léger',{tech:1,fatigue:-5,forceBench:true}]
+    ]};
+  }
+  return pick([
+    {title:'Atelier finition',text:'Frappes, reprises et face-à-face.',choices:[['Je travaille la précision',{tech:2,fatigue:6}],['Je frappe en puissance',{physical:1,tech:1,fatigue:7}],['Je travaille mon mauvais pied',{tech:2,mental:1,fatigue:7}],['Je reste après la séance',{tech:3,fatigue:11,coach:2}]]},
+    {title:'Travail tactique',text:'Déplacements et lecture du jeu.',choices:[['J’écoute toutes les consignes',{mental:2,coach:2}],['Je pose des questions',{mental:2,coach:1}],['Je guide mes coéquipiers',{mental:1,locker:3}],['Je reste passif',{coach:-3,form:-1}]]},
+    {title:'Séance vitesse',text:'Sprints et changements de direction.',choices:[['Je donne tout',{speed:2,fatigue:9}],['Je gère mes efforts',{speed:1,fatigue:5}],['Je travaille les départs',{speed:2,mental:1,fatigue:7}],['Je demande une série en plus',{speed:3,fatigue:12,coach:2}]]},
+    {title:'Opposition interne',text:'Titulaires contre remplaçants.',choices:[['Je joue simple',{mental:1,coach:2}],['Je tente des gestes difficiles',{tech:2,coach:-1}],['Je presse sans arrêt',{physical:2,fatigue:10}],['Je dirige mon équipe',{mental:2,locker:2}]]},
+    {title:'Le coach te félicite',text:'Il remarque ta bonne forme et ton sérieux.',choices:[['Je le remercie',{coach:3,mental:1}],['Je dis que le travail continue',{coach:4,mental:2}],['Je chambre mes coéquipiers',{locker:1,coach:-1}],['Je reste concentré',{form:2}]]},
+    {title:'Le coach te prévient',text:'Il trouve que tu bavardes trop.',choices:[['Je m’excuse',{coach:2,mental:1}],['Je demande quoi améliorer',{coach:3,mental:2}],['Je dis que tout le monde parle',{coach:-3,locker:1}],['Je recommence l’exercice',{coach:3,fatigue:2}]]}
+  ]);
 }
 
 function preMatchEvent(){
@@ -789,7 +739,7 @@ function matchAction(){
 
 function maybeInjury(source){
   const p=state.player;
-  let risk=.015+p.fatigue/(source==='match'?500:650)+(p.physical<45?.025:0);
+  let risk=.004+p.fatigue/(source==='match'?1800:2400)+(p.physical<42?.012:0);
   if(Math.random()>=risk) return false;
   const b=pick([
     {n:'contracture',w:1},{n:'élongation',w:2},
@@ -875,7 +825,8 @@ function playMatch(){
   let oppGoals=r==='GK'&&perf>78?rand(0,1):rand(0,3);
   let h=m.home===p.club?teamGoals:oppGoals;
   let a=m.home===p.club?oppGoals:teamGoals;
-
+  const finalTeamGoals=m.home===p.club?h:a;
+  if(finalTeamGoals===0){g=0;as=0}else{g=Math.min(g,finalTeamGoals);as=Math.min(as,Math.max(0,finalTeamGoals-g))}
   record(m.home,m.away,h,a);
   simulateOthers();
 
@@ -887,7 +838,7 @@ function playMatch(){
 
   p.matches++;p.goals+=g;p.assists+=as;p.sumRating+=note;
   if(note>=8)p.motm++;
-  p.fatigue=clamp(p.fatigue+14);
+  p.fatigue=clamp(p.fatigue+rand(7,11));
 
   if(r==='GK'){
     let conceded=m.home===p.club?a:h;
@@ -1063,6 +1014,25 @@ function coupeDeFrance(){
   return `Coupe de France : ${result}.`;
 }
 
+
+function awardSeason(){
+  const p=state.player,aw=[];
+  if(role()==='GK'){if(p.cleanSheets>=6||rating()>=7.4)aw.push('🧤 Gant d’Or')}
+  else{if(p.goals>=12)aw.push('⚽ Soulier d’Or');if(p.assists>=9)aw.push('🎯 Meilleur passeur');if(p.goals>=10)aw.push('🏅 Meilleur buteur')}
+  if(rating()>=7.8)aw.push('⭐ Joueur de la saison');
+  if(p.pro&&p.reputation>=82&&rating()>=8)aw.push('🏆 Ballon d’Or');
+  aw.forEach(x=>{if(!p.awards.includes(x))p.awards.push(x)});p.seasonAwards=aw;return aw;
+}
+function decideCareerPath(){
+  const p=state.player;if(p.age<18||p.pro||p.amateur)return '';
+  const score=p.reputation*.45+p.potential*.25+rating()*3+Math.random()*20;
+  if(score>=72){p.pro=true;p.careerPath='Professionnel';p.contract=createContract();return 'Tu signes professionnel.'}
+  if(score>=58&&Math.random()<.28){p.amateur=true;p.latePro=true;p.careerPath='Amateur suivi — pro tardif possible';return 'Tu restes amateur mais des clubs pros te suivent.'}
+  p.amateur=true;p.careerPath='Amateur';return 'Tu poursuis en football amateur.';
+}
+function createContract(){const years=pick([2,3]),monthly=rand(1800,8500),bonus=rand(3000,25000);state.player.balance+=bonus;state.player.totalIncome+=bonus;return{club:state.player.club,years,remaining:years,monthly,signingBonus:bonus,role:pick(['Rotation','Titulaire potentiel','Titulaire','Jeune à développer'])}}
+function generateOffers(){const p=state.player,count=rand(0,4),offers=[];for(let i=0;i<count;i++){const level=pick(PRO_LEVELS);offers.push({club:pick(level.clubs),years:pick([2,3]),monthly:rand(2200,16000),signingBonus:rand(5000,50000),role:pick(['Rotation','Titulaire potentiel','Titulaire']),loan:Math.random()<.25,purchaseOption:Math.random()<.5})}p.offers=offers;return offers}
+function annualFinances(){const p=state.player;let income=0,expenses=0;if(p.pro&&p.contract){income=p.contract.monthly*12;expenses=Math.round(income*(p.agent.commission||0)/100)+rand(6000,18000)}else if(p.amateur){income=rand(0,4000);expenses=rand(1500,6000)}else expenses=rand(300,1500);p.balance+=income-expenses;p.totalIncome+=income;p.totalExpenses+=expenses;return{income,expenses}}
 function endSeason(){
   if(state.season.seasonProcessed) return;
   state.season.seasonProcessed=true;
@@ -1079,17 +1049,12 @@ function endSeason(){
 
   if(p.age===13&&!p.poleAttempted){
     p.poleAttempted=true;
-    const score=(p.tech+p.speed+p.physical+p.mental)/4+
-      p.coach*.2+p.mental*.15+Math.random()*25;
-
-    if(score>=78){
-      p.pole=true;p.national=true;p.club='Pôle Espoirs de Castelmaurou';
-      state.season.special='Retenu au Pôle Espoirs de Castelmaurou : passage en championnat national jeunes.';
-    }else{
-      state.season.special='Non retenu à Castelmaurou : poursuite en régional et Tournoi des Violettes à 14 ans.';
-    }
-    extras.push(state.season.special);
-    log('Castelmaurou',state.season.special);
+    const score=((p.tech+p.speed+p.physical+p.mental)/4)*.45+p.potential*.18+p.mental*.12+p.coach*.10+Math.max(0,rating()-5)*4+Math.random()*14;
+    p.poleScore=Math.round(score);
+    if(score>=83){p.pole=true;p.national=true;p.poleStatus='Retenu parmi les 23';p.club='Pôle Espoirs de Castelmaurou';state.season.special=`Retenu parmi les 23 joueurs. Évaluation : ${p.poleScore}/100.`}
+    else if(score>=72){p.pole=false;p.poleStatus='Attention : doit progresser';state.season.special=`Attention, doit progresser. Évaluation : ${p.poleScore}/100. Retour en régional.`;state.season.regionalClubChoice=true}
+    else{p.pole=false;p.poleStatus='Non retenu';state.season.special=`Non retenu. Évaluation : ${p.poleScore}/100. Choisis un club régional.`;state.season.regionalClubChoice=true}
+    extras.push(state.season.special);log('Castelmaurou',state.season.special);
   }
 
   let tournament=null;
@@ -1125,7 +1090,7 @@ function endSeason(){
   const cdf=coupeDeFrance();
   if(cdf){extras.push(cdf);log('Coupe de France',cdf)}
 
-  const intl=internationalCompetition();
+  const awards=awardSeason();if(awards.length)extras.push('Récompenses : '+awards.join(', '));const pathDecision=decideCareerPath();if(pathDecision)extras.push(pathDecision);if(p.pro&&p.contract){p.contract.remaining--;if(p.contract.remaining<=1){const offers=generateOffers();extras.push(offers.length?`${offers.length} proposition(s) reçue(s).`:'Aucune proposition reçue.')}}const finance=annualFinances();extras.push(`Finances : +${finance.income.toLocaleString('fr-FR')} € / -${finance.expenses.toLocaleString('fr-FR')} €.`);const intl=internationalCompetition();
   if(intl){extras.push(intl);log('Sélection',intl)}
 
   detectProfile();
@@ -1151,10 +1116,10 @@ function nextSeason(){
     weekEvent:null,trainingEvent:null,preMatch:null,matchAction:null,
     lastResult:null,absenceReason:'',seasonProcessed:false,
     midReportDone:false,endReport:null,midReport:null,preseasonDone:false,
-    forceBench:false,actionBonus:0,actionGoal:0,actionAssist:0
+    forceBench:false,actionBonus:0,actionGoal:0,actionAssist:0,lastActionMessage:'',regionalClubChoice:false
   };
 
-  let level=p.national?'National jeunes':(p.age>=18?'Seniors régionaux':'Régional jeunes');
+  let level=p.pro?'Championnat professionnel':(p.age>=18?'Seniors régionaux':(p.national?'National jeunes':'Régional jeunes'));
   p.fatigue=clamp(p.fatigue-30);
   p.form=clamp(p.form+8);
   state.league=makeLeague(p.club,level);
@@ -1232,6 +1197,7 @@ function renderWeek(){
     box.innerHTML=`
       ${s.endReport||''}
       ${s.endExtras?`<div class="card"><h2>Compétitions et opportunités</h2><div class="message">${s.endExtras}</div></div>`:''}
+      ${s.regionalClubChoice?`<div class="card"><h2>Choisis ton club régional</h2>${['EFCV Verfeil','FC Girou','FC Lauragais',"L'Union Saint-Jean",'FC Lavaur'].map(c=>`<button data-act="regionalClub" data-club="${c}">${c}</button>`).join('')}</div>`:''}
       <div class="card"><h2>Classement final</h2>${tableHTML()}
       <button data-act="nextSeason">Saison suivante</button></div>`;
     return;
@@ -1332,16 +1298,17 @@ function renderWeek(){
   }
 
   if(s.phase==='ready'){
-    if(p.fatigue>=70&&!s.restDecision){
-      box.innerHTML=`<div class="card">
-        <h2>Fatigue importante</h2>
-        <p>Tu peux demander à ne pas être retenu et récupérer 25 points de fatigue.</p>
+    const actionFeedback=s.lastActionMessage?`<div class="message">${s.lastActionMessage}</div>`:'';
+    if((p.fatigue>=50||p.form<=60)&&!s.restDecision){
+      box.innerHTML=`<div class="card">${actionFeedback}
+        <h2>État physique à surveiller</h2>
+        <p>Fatigue : ${Math.round(p.fatigue)} — Forme : ${Math.round(p.form)}. Tu peux demander à ne pas être retenu et récupérer 25 points.</p>
         <button data-act="rest">Je demande à ne pas être retenu</button>
         <button class="secondary" data-act="playTired">Je joue quand même</button>
       </div>`;
     }else{
       const m=teamMatch();
-      box.innerHTML=`<div class="card">
+      box.innerHTML=`<div class="card">${actionFeedback}
         <h2>Match de championnat</h2>
         <p class="big">${m?m.home+' contre '+m.away:'Aucun match'}</p>
         <button data-act="play">Jouer le match</button>
@@ -1411,6 +1378,10 @@ function renderTabs(){
     <p>Tournois : ${p.tournaments.join(', ')||'Aucun'}</p>
     <p>Titres : ${p.titles.join(', ')||'Aucun'}</p>
   </div>`;
+
+  $('tab-honours').innerHTML=`<div class="card"><h2>🏆 Palmarès</h2><p>Parcours : <strong>${p.careerPath}</strong></p><h3>Titres</h3>${p.titles.length?p.titles.map(x=>`<div class="trophy">${x}</div>`).join(''):'<p>Aucun titre.</p>'}<h3>Récompenses</h3>${p.awards.length?p.awards.map(x=>`<div class="trophy">${x}</div>`).join(''):'<p>Aucune récompense.</p>'}<h3>Historique</h3>${p.history.length?p.history.map(h=>`<div class="journal">${h.age} ans — ${h.club} — ${h.level} — note ${h.rating}</div>`).join(''):'<p>Aucune saison terminée.</p>'}</div>`;
+  $('tab-money').innerHTML=`<div class="card"><h2>💰 Finances</h2><p class="money">Solde : ${Math.round(p.balance).toLocaleString('fr-FR')} €</p><p>Revenus cumulés : ${Math.round(p.totalIncome).toLocaleString('fr-FR')} €</p><p>Dépenses cumulées : ${Math.round(p.totalExpenses).toLocaleString('fr-FR')} €</p><p>Agent : ${p.agent.name} — commission ${p.agent.commission}%</p>${p.contract?`<h3>Contrat</h3><p>${p.contract.club} — ${p.contract.remaining} an(s)</p><p>${p.contract.monthly.toLocaleString('fr-FR')} €/mois — ${p.contract.role}</p>`:'<p>Aucun contrat professionnel.</p>'}${p.offers.length?`<h3>Propositions</h3>${p.offers.map(o=>`<div class="trophy">${o.club} — ${o.years} ans — ${o.monthly.toLocaleString('fr-FR')} €/mois${o.loan?' — prêt'+(o.purchaseOption?' avec option d’achat':' sans option'):''}</div>`).join('')}`:''}</div>`;
+
 }
 
 function render(){
@@ -1465,7 +1436,7 @@ $('deleteBtn').onclick=()=>{
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  ['week','player','standing','journal','future'].forEach(
+  ['week','player','standing','journal','future','honours','money'].forEach(
     x=>$('tab-'+x).classList.toggle('hidden',x!==b.dataset.tab)
   );
 });
@@ -1553,8 +1524,7 @@ document.addEventListener('click',e=>{
       if(choice[0].includes('frappe'))s.actionGoal=Math.random()<.28?1:0;
     }
 
-    log(`${ac.minute}e minute`,ok?`Action réussie : ${choice[0]}.`:`Action ratée : ${choice[0]}.`);
-    s.phase='ready';save();render();
+    let feedback=ok?`✅ Tu réussis : ${choice[0]}.`:`❌ Tu rates : ${choice[0]}.`; if(ok&&s.actionGoal)feedback+=' Tu marques !'; if(ok&&s.actionAssist)feedback+=' Ta passe devient décisive.'; if(!ok&&choice[0].includes('Passe'))feedback+=' Le ballon est intercepté.'; s.lastActionMessage=feedback; log(`${ac.minute}e minute`,feedback); s.phase='ready';save();render();
   }
 
   else if(a==='rest'){
@@ -1593,9 +1563,8 @@ document.addEventListener('click',e=>{
     s.phase='life';save();render();
   }
 
-  else if(a==='nextSeason'){
-    nextSeason();
-  }
+  else if(a==='regionalClub'){p.club=b.dataset.club;p.national=false;s.regionalClubChoice=false;log('Nouveau club régional',`Tu rejoins ${p.club}.`);save();render()}
+  else if(a==='nextSeason'){if(s.regionalClubChoice){alert('Choisis d’abord ton club régional.');return}nextSeason();}
 });
 
 window.addEventListener('error', event => {
