@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V2.2.1 BÊTA</title>
+<title>TCROMA ACADEMY V2.3 STABLE</title>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#06140d;--card:#10291b;--card2:#183b27;--line:#2b5a3c;--txt:#f5fbf7;--muted:#b7cbbc;--gold:#f4cb47;--red:#8c3434;--green:#2bb768;--blue:#3674c8}
@@ -38,9 +38,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div>
-    <h1>⚽ TCROMA ACADEMY V2.2.1 BÊTA</h1>
+    <h1>⚽ TCROMA ACADEMY V2.3 STABLE</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
-    <p>De 13 ans aux seniors, avec matchs interactifs, stages, détections et bilans.</p><p class="muted">Correctif V2.2.1</p>
+    <p>De 13 ans aux seniors, avec matchs interactifs, stages, détections et bilans.</p><p class="muted">Version 2.3 STABLE</p>
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
   </div>
@@ -144,7 +144,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV221';
+const SAVE_KEY = 'tcromaAcademyV23';
 
 const REGIONAL = [
   'EFCV Verfeil','FC Girou',"L'Union Saint-Jean",'FC Lauragais',
@@ -183,7 +183,69 @@ const pick = a => a[Math.floor(Math.random()*a.length)];
 const rand = (a,b) => a + Math.floor(Math.random()*(b-a+1));
 
 function save(){localStorage.setItem(SAVE_KEY,JSON.stringify(state))}
-function load(){try{return JSON.parse(localStorage.getItem(SAVE_KEY))}catch{return null}}
+function load(){
+  try{
+    const data = JSON.parse(localStorage.getItem(SAVE_KEY));
+    return normalizeState(data);
+  }catch{
+    return null;
+  }
+}
+
+function normalizeState(data){
+  if(!data || !data.player || !data.season) return null;
+
+  const p = data.player;
+  const s = data.season;
+
+  p.age = Number(p.age) || 13;
+  p.fatigue = clamp(Number(p.fatigue) || 0);
+  p.form = clamp(Number(p.form) || 50);
+  p.coach = clamp(Number(p.coach) || 50);
+  p.morale = clamp(Number(p.morale) || 50);
+  p.reputation = clamp(Number(p.reputation) || 0);
+  p.tech = clamp(Number(p.tech) || 45);
+  p.speed = clamp(Number(p.speed) || 45);
+  p.physical = clamp(Number(p.physical) || 45);
+  p.mental = clamp(Number(p.mental) || 45);
+  p.matches = Number(p.matches) || 0;
+  p.goals = Number(p.goals) || 0;
+  p.assists = Number(p.assists) || 0;
+  p.motm = Number(p.motm) || 0;
+  p.sumRating = Number(p.sumRating) || 0;
+  p.injuryWeeks = Number(p.injuryWeeks) || 0;
+  p.suspension = Number(p.suspension) || 0;
+  p.styleCounters = p.styleCounters || {creator:0,warrior:0,artist:0,finisher:0,leader:0};
+  p.history = Array.isArray(p.history) ? p.history : [];
+  p.titles = Array.isArray(p.titles) ? p.titles : [];
+  p.tournaments = Array.isArray(p.tournaments) ? p.tournaments : [];
+
+  s.round = Math.max(1, Number(s.round) || 1);
+  s.phase = [
+    'preseason','life','training','prematch','action','ready',
+    'result','midReport'
+  ].includes(s.phase) ? s.phase : 'preseason';
+  s.journal = Array.isArray(s.journal) ? s.journal : [];
+  s.weekEvent = s.weekEvent || null;
+  s.trainingEvent = s.trainingEvent || null;
+  s.preMatch = s.preMatch === false ? false : (s.preMatch || null);
+  s.matchAction = s.matchAction || null;
+  s.lastResult = s.lastResult || null;
+  s.midReportDone = Boolean(s.midReportDone);
+  s.seasonProcessed = Boolean(s.seasonProcessed);
+  s.forceBench = Boolean(s.forceBench);
+  s.actionBonus = Number(s.actionBonus) || 0;
+  s.actionGoal = Number(s.actionGoal) || 0;
+  s.actionAssist = Number(s.actionAssist) || 0;
+  s.restDecision = Boolean(s.restDecision);
+
+  if(!data.league || !Array.isArray(data.league.table) || !Array.isArray(data.league.schedule)){
+    const level = p.national ? 'National jeunes' : (p.age >= 18 ? 'Seniors régionaux' : 'Régional jeunes');
+    data.league = makeLeague(p.club, level);
+  }
+
+  return data;
+}
 
 function log(title,text){
   state.season.journal.unshift({
@@ -267,9 +329,16 @@ function role(){
 }
 
 function teamMatch(){
-  return state.league.schedule[state.season.round-1]?.find(
-    g=>g.home===state.player.club||g.away===state.player.club
-  );
+  if(!state || !state.player || !state.season || !state.league) return null;
+
+  const round = Math.max(1, Number(state.season.round) || 1);
+  const day = state.league.schedule?.[round - 1];
+
+  if(!Array.isArray(day)) return null;
+
+  return day.find(
+    g => g.home === state.player.club || g.away === state.player.club
+  ) || null;
 }
 
 function updateTeam(name,gf,ga){
@@ -732,8 +801,19 @@ function maybeInjury(source){
 }
 
 function simulateAbsent(reason,recovery=0){
-  const m=teamMatch();
-  if(!m) return;
+  state = normalizeState(state);
+  if(!state) return;
+
+  const m = teamMatch();
+  if(!m){
+    alert("Aucun match trouvé. Le calendrier va être reconstruit.");
+    const p = state.player;
+    const level = p.national ? 'National jeunes' : (p.age >= 18 ? 'Seniors régionaux' : 'Régional jeunes');
+    state.league = makeLeague(p.club, level);
+    save();
+    render();
+    return;
+  }
   let h=rand(0,3),a=rand(0,3);
   record(m.home,m.away,h,a);
   simulateOthers();
@@ -745,8 +825,20 @@ function simulateAbsent(reason,recovery=0){
 }
 
 function playMatch(){
-  const p=state.player,m=teamMatch();
-  if(!m) return;
+  state = normalizeState(state);
+  if(!state) return;
+
+  const p = state.player;
+  const m = teamMatch();
+
+  if(!m){
+    alert("Aucun match trouvé pour cette journée. Le calendrier va être reconstruit.");
+    const level = p.national ? 'National jeunes' : (p.age >= 18 ? 'Seniors régionaux' : 'Régional jeunes');
+    state.league = makeLeague(p.club, level);
+    save();
+    render();
+    return;
+  }
 
   let avg=(p.tech+p.speed+p.physical+p.mental)/4;
   let perf=avg+p.form*.22+p.coach*.18-p.fatigue*.28+
@@ -1070,37 +1162,39 @@ function nextSeason(){
 }
 
 function resetWeek(){
-  if(!state || !state.player || !state.season || !state.league){
-    alert("La sauvegarde est invalide. Commence une nouvelle carrière.");
+  state = normalizeState(state);
+
+  if(!state){
+    alert("La carrière est invalide. Commence une nouvelle carrière.");
     localStorage.removeItem(SAVE_KEY);
     show('home');
     return;
   }
 
-  const currentRound = Number(state.season.round) || 1;
-  state.season.round = currentRound + 1;
+  const s = state.season;
+  const p = state.player;
 
-  state.season.weekEvent = null;
-  state.season.trainingEvent = null;
-  state.season.preMatch = null;
-  state.season.matchAction = null;
-  state.season.lastResult = null;
-  state.season.forceBench = false;
-  state.season.actionBonus = 0;
-  state.season.actionGoal = 0;
-  state.season.actionAssist = 0;
-  state.season.restDecision = false;
+  s.round = Math.max(1, Number(s.round) || 1) + 1;
 
-  if(state.player.suspension > 0){
-    state.player.suspension--;
-  }
+  s.weekEvent = null;
+  s.trainingEvent = null;
+  s.preMatch = null;
+  s.matchAction = null;
+  s.lastResult = null;
+  s.forceBench = false;
+  s.actionBonus = 0;
+  s.actionGoal = 0;
+  s.actionAssist = 0;
+  s.restDecision = false;
 
-  if(state.season.round === 10 && !state.season.midReportDone){
-    state.season.midReport = reportHTML('Bilan de mi-saison');
-    state.season.midReportDone = true;
-    state.season.phase = 'midReport';
+  if(p.suspension > 0) p.suspension--;
+
+  if(s.round === 10 && !s.midReportDone){
+    s.midReport = reportHTML('Bilan de mi-saison');
+    s.midReportDone = true;
+    s.phase = 'midReport';
   }else{
-    state.season.phase = 'life';
+    s.phase = 'life';
   }
 
   save();
@@ -1264,6 +1358,7 @@ function renderWeek(){
       <div class="message">${r.absent?`Tu étais absent : ${r.reason}.`:renderPerformance(r)}</div>
       <h3>Classement</h3>${tableHTML()}
       <button data-act="nextRound">Journée suivante</button>
+      <button class="secondary" data-act="forceNextRound">Débloquer et passer la journée</button>
     </div>`;
   }
 }
@@ -1319,8 +1414,17 @@ function renderTabs(){
 }
 
 function render(){
-  if(!state)return;
-  renderHeader();renderWeek();renderTabs();save();
+  state = normalizeState(state);
+  if(!state){
+    alert("Impossible de charger la carrière.");
+    show('home');
+    return;
+  }
+
+  renderHeader();
+  renderWeek();
+  renderTabs();
+  save();
 }
 
 function show(id){
@@ -1372,16 +1476,17 @@ document.addEventListener('click',e=>{
 
   e.preventDefault();
 
-  const a=b.dataset.act;
-  const p=state.player;
-  const s=state.season;
-
-  if(!p || !s){
-    alert("Erreur de sauvegarde. Commence une nouvelle carrière.");
+  state = normalizeState(state);
+  if(!state){
+    alert("La sauvegarde est invalide.");
     localStorage.removeItem(SAVE_KEY);
     show('home');
     return;
   }
+
+  const a = b.dataset.act;
+  const p = state.player;
+  const s = state.season;
 
   if(a==='preseasonChoice'){
     const option=preseasonOptions()[+b.dataset.i];
@@ -1468,12 +1573,15 @@ document.addEventListener('click',e=>{
     resetWeek();
   }
 
+  else if(a==='forceNextRound'){
+    state.season.phase = 'life';
+    resetWeek();
+  }
+
   else if(a==='injuredAbsent'){
-    const injuryName = p.injury;
+    const injuryName = p.injury || 'Blessure';
     p.injuryWeeks = Math.max(0, (Number(p.injuryWeeks) || 1) - 1);
-    if(p.injuryWeeks === 0){
-      p.injury = '';
-    }
+    if(p.injuryWeeks === 0) p.injury = '';
     simulateAbsent(`Blessure : ${injuryName}`,15);
   }
 
@@ -1488,6 +1596,14 @@ document.addEventListener('click',e=>{
   else if(a==='nextSeason'){
     nextSeason();
   }
+});
+
+window.addEventListener('error', event => {
+  console.error('TCROMA ACADEMY:', event.error || event.message);
+});
+
+window.addEventListener('unhandledrejection', event => {
+  console.error('TCROMA ACADEMY Promise:', event.reason);
 });
 
 show('home');
