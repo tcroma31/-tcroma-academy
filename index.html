@@ -1,40 +1,1470 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TCROMA ACADEMY</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCROMA ACADEMY V2.2 BÊTA</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#06140d;--card:#10291b;--card2:#183b27;--line:#2b5a3c;--txt:#f5fbf7;--muted:#b7cbbc;--gold:#f4cb47;--red:#8c3434;--green:#2bb768;--blue:#3674c8}
+body{margin:0;min-height:100vh;font-family:Arial,Helvetica,sans-serif;color:var(--txt);background:radial-gradient(circle at top,#164a2e 0,#07180f 38%,var(--bg) 100%)}
+.wrap{width:min(1050px,100%);margin:auto;padding:18px 14px 60px}
+.card{background:rgba(16,41,27,.97);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 15px 35px rgba(0,0,0,.24)}
+.center{text-align:center}.hidden{display:none!important}h1,h2,h3{margin-top:0}.muted{color:var(--muted)}
+.hero{min-height:75vh;display:grid;place-items:center}.hero .card{max-width:740px;width:100%;padding:38px}
+button{width:100%;padding:13px 15px;margin-top:10px;border:0;border-radius:12px;background:var(--gold);font-weight:800;font-size:16px;cursor:pointer;color:#171307}
+button.secondary{background:var(--card2);border:1px solid var(--line);color:var(--txt)}
+button.danger{background:var(--red);color:white}
+button.blue{background:var(--blue);color:white}
+input,select{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:#081a10;color:var(--txt);font-size:16px;margin-top:6px}
+label{display:block;margin-top:13px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.header{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap}
+.badges{display:flex;gap:8px;flex-wrap:wrap}.badge{padding:8px 12px;border-radius:999px;background:var(--card2);border:1px solid var(--line)}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}.tab{margin:0;background:var(--card2);color:var(--txt);border:1px solid var(--line)}.tab.active{background:var(--gold);color:#171307}
+.message{padding:14px;border-left:4px solid var(--gold);background:#071a10;border-radius:10px;line-height:1.55;margin:12px 0}
+.score{font-size:28px;font-weight:900;text-align:center;margin:16px 0}.big{font-size:21px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:center}th:first-child,td:first-child{text-align:left}.mine{background:rgba(244,203,71,.16);font-weight:700}
+.stat{display:grid;grid-template-columns:155px 1fr 45px;gap:10px;align-items:center;margin:10px 0}.bar{height:10px;background:#284a35;border-radius:999px;overflow:hidden}.bar span{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--gold))}
+.journal{padding:12px 0;border-bottom:1px solid var(--line)}.choice button{margin-top:8px}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:var(--card2);margin:3px}.positive{color:#83e3a7}.negative{color:#ff9b9b}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.report-box{padding:14px;background:#0a1e13;border-radius:14px;border:1px solid var(--line)}
+@media(max-width:700px){.grid2,.grid3,.report-grid{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}.stat{grid-template-columns:110px 1fr 38px}.hero .card{padding:24px}}
+</style>
 </head>
 <body>
-  <main class="page centre">
-    <section class="carte hero">
-      <div class="sur-titre">TCROMA Studio présente</div>
-      <h1>⚽ TCROMA ACADEMY</h1>
-      <h2>Ta carrière. Tes choix. Ton histoire.</h2>
-      <p>Tu as 13 ans. Le football à 11 commence aujourd'hui.</p>
+<div class="wrap">
 
-      <button onclick="window.location.href='creation.html'">
-        Nouvelle carrière
-      </button>
+<section id="home" class="hero">
+  <div class="card center">
+    <div class="muted">TCROMA Studio présente</div>
+    <h1>⚽ TCROMA ACADEMY V2.2 BÊTA</h1>
+    <h2>Ta carrière. Tes choix. Ton histoire.</h2>
+    <p>De 13 ans aux seniors, avec matchs interactifs, stages, détections et bilans.</p>
+    <button id="newCareer">Nouvelle carrière</button>
+    <button id="continueCareer" class="secondary">Continuer</button>
+  </div>
+</section>
 
-      <button class="secondaire" id="continuer">
-        Continuer
-      </button>
-    </section>
-  </main>
+<section id="creation" class="hidden">
+  <div class="card">
+    <h1>Création du joueur</h1>
+    <div class="grid2">
+      <div><label>Prénom<input id="firstName" placeholder="Thomas"></label></div>
+      <div><label>Nom<input id="lastName" placeholder="Navarro"></label></div>
+    </div>
 
-  <script>
-    document.getElementById("continuer").addEventListener("click", () => {
-      const prenom = localStorage.getItem("prenom");
+    <label>Poste
+      <select id="position">
+        <option value="">Choisir</option>
+        <option>Gardien</option>
+        <option>Défenseur central</option>
+        <option>Latéral droit</option>
+        <option>Latéral gauche</option>
+        <option>Milieu défensif</option>
+        <option>Milieu relayeur</option>
+        <option>Meneur de jeu</option>
+        <option>Ailier droit</option>
+        <option>Ailier gauche</option>
+        <option>Attaquant</option>
+      </select>
+    </label>
 
-      if (!prenom) {
-        alert("Aucune carrière sauvegardée.");
-        return;
+    <div class="grid2">
+      <label>Nationalité principale
+        <select id="nationality">
+          <option>France</option><option>Espagne</option><option>Portugal</option>
+          <option>Italie</option><option>Belgique</option><option>Maroc</option>
+          <option>Sénégal</option><option>Algérie</option><option>Brésil</option>
+          <option>Argentine</option><option>Angleterre</option><option>Allemagne</option>
+        </select>
+      </label>
+      <label>Deuxième nationalité (facultative)
+        <select id="secondNationality">
+          <option value="">Aucune</option><option>France</option><option>Espagne</option>
+          <option>Portugal</option><option>Italie</option><option>Belgique</option>
+          <option>Maroc</option><option>Sénégal</option><option>Algérie</option>
+          <option>Brésil</option><option>Argentine</option>
+        </select>
+      </label>
+    </div>
+
+    <label>Club
+      <select id="startClub">
+        <option>EFCV Verfeil</option><option>FC Girou</option>
+        <option>L'Union Saint-Jean</option><option>FC Lauragais</option>
+        <option>Balma SC</option><option>Castanet</option>
+        <option>Saint-Orens FC</option><option>US Colomiers</option>
+        <option>FC Lavaur</option><option>Albi Marssac</option>
+      </select>
+    </label>
+
+    <button id="startCareer">Commencer</button>
+    <button id="backHome" class="secondary">Retour</button>
+  </div>
+</section>
+
+<section id="game" class="hidden">
+  <div class="card header">
+    <div>
+      <div class="muted">TCROMA ACADEMY</div>
+      <h1 id="playerName"></h1>
+      <p id="playerSummary"></p>
+    </div>
+    <div class="badges">
+      <span id="ageBadge" class="badge"></span>
+      <span id="roundBadge" class="badge"></span>
+      <span id="levelBadge" class="badge"></span>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="week">Semaine</button>
+    <button class="tab" data-tab="player">Joueur</button>
+    <button class="tab" data-tab="standing">Classement</button>
+    <button class="tab" data-tab="journal">Journal</button>
+    <button class="tab" data-tab="future">Avenir</button>
+  </nav>
+
+  <section id="tab-week"></section>
+  <section id="tab-player" class="hidden"></section>
+  <section id="tab-standing" class="hidden"></section>
+  <section id="tab-journal" class="hidden"></section>
+  <section id="tab-future" class="hidden"></section>
+
+  <div class="card">
+    <button id="saveBtn" class="secondary">Sauvegarder</button>
+    <button id="homeBtn" class="secondary">Accueil</button>
+    <button id="deleteBtn" class="danger">Supprimer la carrière</button>
+  </div>
+</section>
+
+</div>
+
+<script>
+'use strict';
+
+const SAVE_KEY = 'tcromaAcademyV22';
+
+const REGIONAL = [
+  'EFCV Verfeil','FC Girou',"L'Union Saint-Jean",'FC Lauragais',
+  'Balma SC','Castanet','Saint-Orens FC','US Colomiers','FC Lavaur','Albi Marssac'
+];
+
+const NATIONAL = [
+  'Pôle Espoirs de Castelmaurou','INF Clairefontaine',
+  'Toulouse FC Réserve Jeunes','Montpellier HSC Réserve Jeunes',
+  'Bordeaux Réserve Jeunes','Rodez AF Réserve Jeunes',
+  'Nîmes Réserve Jeunes','Pau FC Réserve Jeunes',
+  'Clermont Foot Réserve Jeunes','AS Monaco Réserve Jeunes'
+];
+
+const SENIOR_REGIONAL = [
+  'EFCV Verfeil','FC Girou','FC Lauragais','FC Lavaur','Balma SC',
+  'Castanet','Albi Marssac','Gaillac FC','Graulhet FC','Saint-Orens FC'
+];
+
+const NATION_STRENGTH = {
+  France:92, Espagne:90, Portugal:86, Italie:85, Belgique:82, Maroc:79,
+  Sénégal:78, Algérie:75, Brésil:93, Argentine:93, Angleterre:89, Allemagne:88
+};
+
+const PRO_LEVELS = [
+  {name:'National / Ligue 3',min:30,clubs:['Nîmes Olympique','Dijon FCO','Le Mans FC','Sochaux']},
+  {name:'Ligue 2',min:48,clubs:['Rodez AF','Pau FC','Grenoble Foot 38','Guingamp']},
+  {name:'Ligue 1',min:68,clubs:['Toulouse FC','Montpellier HSC','AS Monaco','Lille OSC']}
+];
+
+let state = null;
+
+const $ = id => document.getElementById(id);
+const clamp = (v,a=0,b=100) => Math.max(a,Math.min(b,v));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const rand = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+
+function save(){localStorage.setItem(SAVE_KEY,JSON.stringify(state))}
+function load(){try{return JSON.parse(localStorage.getItem(SAVE_KEY))}catch{return null}}
+
+function log(title,text){
+  state.season.journal.unshift({
+    title,text,age:state.player.age,round:state.season.round
+  });
+  state.season.journal = state.season.journal.slice(0,100);
+}
+
+function freshTeam(name){
+  return {name,played:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
+}
+
+function schedule(clubs){
+  let rot=[...clubs], first=[];
+  for(let r=0;r<clubs.length-1;r++){
+    let games=[];
+    for(let i=0;i<clubs.length/2;i++){
+      let a=rot[i], b=rot[clubs.length-1-i];
+      games.push(r%2 ? {home:b,away:a} : {home:a,away:b});
+    }
+    first.push(games);
+    rot=[rot[0],rot[rot.length-1],...rot.slice(1,-1)];
+  }
+  return [...first,...first.map(day=>day.map(g=>({home:g.away,away:g.home})))];
+}
+
+function makeLeague(club,level){
+  let clubs;
+  if(level==='National jeunes'){
+    clubs=[...NATIONAL];
+    if(!clubs.includes(club)) clubs[0]=club;
+  }else if(level==='Seniors régionaux'){
+    clubs=[club,...SENIOR_REGIONAL.filter(c=>c!==club)].slice(0,10);
+  }else{
+    clubs=[club,...REGIONAL.filter(c=>c!==club)].slice(0,10);
+  }
+  return {level,clubs,table:clubs.map(freshTeam),schedule:schedule(clubs)};
+}
+
+function newState(first,last,pos,club,nationality,secondNationality){
+  const p={
+    first,last,pos,club,nationality,secondNationality,
+    age:13,tech:rand(42,56),speed:rand(42,56),
+    physical:rand(42,56),mental:rand(42,56),
+    fatigue:10,form:65,coach:50,morale:60,reputation:0,
+    potential:rand(72,92),school:55,parents:65,locker:50,president:50,
+    injuryWeeks:0,injury:'',suspension:0,cardsWhite:0,cardsYellow:0,cardsRed:0,
+    matches:0,goals:0,assists:0,motm:0,sumRating:0,
+    saves:0,cleanSheets:0,pensSaved:0,goalsConceded:0,
+    pole:false,poleAttempted:false,national:false,academy:'Aucun',
+    titles:[],tournaments:[],history:[],
+    internationalTeam:'Aucune',internationalCaps:0,internationalGoals:0,
+    profile:'Non défini',
+    styleCounters:{creator:0,warrior:0,artist:0,finisher:0,leader:0},
+    seasonStartStats:null
+  };
+
+  return {
+    player:p,
+    season:{
+      round:1,phase:'preseason',journal:[],weekEvent:null,trainingEvent:null,
+      preMatch:null,matchAction:null,lastResult:null,absenceReason:'',
+      seasonProcessed:false,midReportDone:false,endReport:null,midReport:null,
+      preseasonDone:false,forceBench:false,actionBonus:0,
+      actionGoal:0,actionAssist:0
+    },
+    league:makeLeague(club,'Régional jeunes')
+  };
+}
+
+function rating(){
+  return state.player.matches ? state.player.sumRating/state.player.matches : 0;
+}
+
+function role(){
+  const p=state.player.pos;
+  if(p==='Gardien') return 'GK';
+  if(p.includes('Défenseur')||p.includes('Latéral')) return 'DEF';
+  if(p.includes('Milieu')||p==='Meneur de jeu') return 'MID';
+  return 'ATT';
+}
+
+function teamMatch(){
+  return state.league.schedule[state.season.round-1]?.find(
+    g=>g.home===state.player.club||g.away===state.player.club
+  );
+}
+
+function updateTeam(name,gf,ga){
+  const t=state.league.table.find(x=>x.name===name);
+  if(!t) return;
+  t.played++; t.gf+=gf; t.ga+=ga;
+  if(gf>ga){t.w++;t.pts+=3}
+  else if(gf===ga){t.d++;t.pts++}
+  else t.l++;
+}
+
+function record(home,away,h,a){
+  updateTeam(home,h,a);
+  updateTeam(away,a,h);
+}
+
+function simulateOthers(){
+  for(const g of state.league.schedule[state.season.round-1]||[]){
+    if(g.home===state.player.club||g.away===state.player.club) continue;
+    record(g.home,g.away,rand(0,3),rand(0,3));
+  }
+}
+
+function sortedTable(){
+  return [...state.league.table].sort(
+    (a,b)=>b.pts-a.pts||((b.gf-b.ga)-(a.gf-a.ga))||b.gf-a.gf
+  );
+}
+
+function tableHTML(){
+  return `<table>
+    <thead><tr><th>Club</th><th>J</th><th>Pts</th><th>Diff.</th></tr></thead>
+    <tbody>${sortedTable().map((t,i)=>`
+      <tr class="${t.name===state.player.club?'mine':''}">
+        <td>${i+1}. ${t.name}</td><td>${t.played}</td>
+        <td>${t.pts}</td><td>${t.gf-t.ga}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function statLine(label,v){
+  return `<div class="stat"><span>${label}</span>
+    <div class="bar"><span style="width:${clamp(v)}%"></span></div>
+    <strong>${Math.round(v)}</strong></div>`;
+}
+
+function apply(effects){
+  for(const [k,v] of Object.entries(effects||{})){
+    if(['tech','speed','physical','mental','fatigue','form','coach','morale',
+        'reputation','school','parents','locker','president'].includes(k)){
+      state.player[k]=clamp((state.player[k]||0)+v);
+    }else{
+      state.season[k]=v;
+    }
+  }
+}
+
+function preseasonOptions(){
+  const p=state.player;
+  return [
+    {
+      name:'Préparation avec ton père',
+      desc:'Footings, frappes et conduite de balle. Gratuite et familiale.',
+      admitted:true,
+      effects:{tech:1,mental:2,parents:4,fatigue:8}
+    },
+    {
+      name:'Coach personnel',
+      desc:'Travail individuel intensif sur ton point faible.',
+      admitted:true,
+      effects:{tech:2,speed:2,physical:1,fatigue:12}
+    },
+    {
+      name:'Stage VFC à Castelmaurou',
+      desc:'Stage exigeant avec tests et oppositions.',
+      admitted:(p.tech+p.speed+p.physical+p.mental)/4>=52,
+      effects:{tech:2,physical:2,mental:2,fatigue:14,reputation:2}
+    },
+    {
+      name:'Stage Jean-Michel Larqué à Bordeaux',
+      desc:'Vision, qualité de passe et intelligence de jeu.',
+      admitted:p.tech>=55||p.reputation>=12,
+      effects:{tech:3,mental:3,fatigue:10,reputation:2}
+    },
+    {
+      name:'Académie Hidalgo à Cannes',
+      desc:'Technique individuelle et préparation physique.',
+      admitted:p.reputation>=18||p.age>=15,
+      effects:{tech:2,speed:2,physical:2,fatigue:13,reputation:3}
+    },
+    {
+      name:'PSG Academy',
+      desc:'Très haut niveau, admission difficile.',
+      admitted:p.reputation>=35&&p.tech>=62,
+      effects:{tech:4,speed:2,mental:2,fatigue:16,reputation:6}
+    },
+    {
+      name:'Vacances et repos',
+      desc:'Tu coupes vraiment pour revenir frais.',
+      admitted:true,
+      effects:{fatigue:-35,morale:8,form:5}
+    },
+    {
+      name:'Tu flânes tout l’été',
+      desc:'Repos total, mais retour avec peu de rythme.',
+      admitted:true,
+      effects:{fatigue:-25,morale:5,form:-8,coach:-2}
+    }
+  ];
+}
+
+function ageEventPool(){
+  const a=state.player.age;
+  if(a<=14) return [
+    {
+      title:'Contrôle demain',
+      text:'Ta mère insiste pour que tu révises avant le foot.',
+      choices:[
+        ['Je révise puis je vais au foot',{school:3,fatigue:4,mental:1}],
+        ['Je vais directement au foot',{school:-2,coach:2,parents:-2}],
+        ['Je reste réviser toute la soirée',{school:5,coach:-2,skipTraining:true}],
+        ['Je promets de réviser après',{school:1,parents:1,fatigue:3}]
+      ]
+    },
+    {
+      title:'Ton père finit tard',
+      text:'Il ne peut pas t’emmener à l’entraînement.',
+      choices:[
+        ['Je demande à un coéquipier',{locker:2,coach:1}],
+        ['Je prends le vélo',{fatigue:8,mental:2}],
+        ['Je manque la séance',{coach:-5,form:-2,skipTraining:true}],
+        ['J’appelle le coach pour prévenir',{coach:-1,mental:1,skipTraining:true}]
+      ]
+    },
+    {
+      title:'Pluie battante',
+      text:'Le terrain est détrempé, mais le coach maintient la séance.',
+      choices:[
+        ['J’y vais sans discuter',{mental:2,physical:1,fatigue:7}],
+        ['Je demande si c’est vraiment maintenu',{coach:0}],
+        ['Je reste au chaud',{coach:-4,morale:2,skipTraining:true}],
+        ['Je propose du covoiturage',{locker:3,reputation:1}]
+      ]
+    }
+  ];
+
+  if(a<=17) return [
+    {
+      title:'Soirée d’anniversaire',
+      text:'Une fille de ta classe t’invite la veille du match.',
+      choices:[
+        ['Je refuse pour le foot',{mental:2,coach:2,morale:-1}],
+        ['J’y vais mais je rentre tôt',{morale:3,fatigue:5}],
+        ['Je reste jusqu’à 3 heures',{morale:6,fatigue:18,coach:-3}],
+        ['Je passe seulement une heure',{morale:2,fatigue:2}]
+      ]
+    },
+    {
+      title:'Sortie en boîte',
+      text:'Tes amis insistent pour que tu les accompagnes.',
+      choices:[
+        ['Je refuse',{mental:2,form:2}],
+        ['Je viens mais sans alcool',{morale:3,fatigue:7}],
+        ['Je fais toute la nuit',{morale:7,fatigue:25,coach:-6,reputation:-2}],
+        ['Je préviens le coach et je rentre tôt',{morale:2,fatigue:5,coach:1}]
+      ]
+    },
+    {
+      title:'Copine ou entraînement',
+      text:'Ta copine veut te voir exactement pendant la séance.',
+      choices:[
+        ['Je vais à l’entraînement',{coach:3,mental:1,morale:-2}],
+        ['Je la vois après',{morale:2,fatigue:3}],
+        ['Je manque la séance',{morale:5,coach:-5,skipTraining:true}],
+        ['Je lui propose de venir au match',{morale:3,reputation:1}]
+      ]
+    }
+  ];
+
+  return [
+    {
+      title:'Déplacement senior compliqué',
+      text:'Le minibus tombe en panne à une heure du coup d’envoi.',
+      choices:[
+        ['J’organise les voitures',{reputation:3,locker:4,mental:2}],
+        ['J’attends les dirigeants',{morale:-1}],
+        ['Je propose de reporter',{president:-2,coach:-1}],
+        ['Je pars avec deux coéquipiers',{locker:2,fatigue:3}]
+      ]
+    },
+    {
+      title:'Prime saucisse-frites',
+      text:'Le président annonce une prime de victoire très régionale.',
+      choices:[
+        ['Je motive tout le monde',{locker:4,morale:4}],
+        ['Je demande une vraie prime',{president:-5,reputation:-2}],
+        ['Je plaisante avec le président',{locker:2,president:1}],
+        ['Je reste concentré',{mental:2}]
+      ]
+    },
+    {
+      title:'Terrain en herbe sous le déluge',
+      text:'Le synthétique est libre, mais le coach choisit l’herbe.',
+      choices:[
+        ['Je respecte sa décision',{coach:1,fatigue:5}],
+        ['Je propose le synthétique calmement',{mental:1,coach:0}],
+        ['Je critique devant le groupe',{coach:-5,locker:1,forceBench:true}],
+        ['Je prépare mes crampons longs',{mental:2,physical:1}]
+      ]
+    }
+  ];
+}
+
+function createWeekEvent(){
+  if(state.season.weekEvent) return;
+  if(Math.random()<0.68) state.season.weekEvent=pick(ageEventPool());
+}
+
+function trainingEvent(){
+  const p=state.player;
+  const events=[
+    {
+      title:'Le coach te félicite',
+      text:'Il remarque ta bonne forme et ton sérieux.',
+      choices:[
+        ['Je le remercie',{coach:3,mental:1}],
+        ['Je dis que le travail continue',{coach:4,mental:2}],
+        ['Je chambre mes coéquipiers',{locker:1,coach:-1}],
+        ['Je reste concentré',{form:2}]
+      ]
+    },
+    {
+      title:'Le coach te prévient',
+      text:'Il trouve que tu bavardes trop pendant ses consignes.',
+      choices:[
+        ['Je m’excuse',{coach:2,mental:1}],
+        ['Je dis que tout le monde parle',{coach:-3,locker:1}],
+        ['Je ne réponds pas',{morale:-1}],
+        ['Je propose de recommencer l’exercice',{coach:3,fatigue:3}]
+      ]
+    },
+    {
+      title:'Vestiaire laissé sale',
+      text:'Le coach impose une punition collective.',
+      choices:[
+        ['Je reste nettoyer',{coach:3,locker:2,fatigue:4}],
+        ['Je pars discrètement',{coach:-4,reputation:-1}],
+        ['Je convaincs tout le monde de ranger',{locker:4,mental:2}],
+        ['Je dis que ce n’est pas moi',{locker:-2,coach:-2}]
+      ]
+    },
+    {
+      title:'Séance intense',
+      text:'Le coach organise des duels et des courses.',
+      choices:[
+        ['Je donne tout',{physical:2,mental:1,fatigue:12}],
+        ['Je gère mes efforts',{physical:1,fatigue:6}],
+        ['Je triche sur les courses',{coach:-4,form:-2}],
+        ['Je motive le groupe',{mental:2,locker:3,fatigue:8}]
+      ]
+    }
+  ];
+  return pick(events);
+}
+
+function preMatchEvent(){
+  if(state.season.preMatch!==null) return;
+  if(Math.random()>.55){state.season.preMatch=false;return}
+
+  const pool=[
+    {
+      title:'Tu débutes sur le banc',
+      text:'Le coach te demande de rester prêt.',
+      choices:[
+        ['Je respecte son choix',{coach:2,mental:1,forceBench:true}],
+        ['Je demande une explication',{coach:0,forceBench:true}],
+        ['Je râle devant le groupe',{coach:-5,locker:-2,forceBench:true}],
+        ['Je promets de changer le match en entrant',{mental:3,forceBench:true}]
+      ]
+    },
+    {
+      title:'Petite douleur à l’échauffement',
+      text:'Tu sens une gêne musculaire.',
+      choices:[
+        ['Je joue quand même',{fatigue:5,risk:.12}],
+        ['Je préviens le coach',{coach:2,forceBench:true,fatigue:-5}],
+        ['Je demande un bandage',{risk:.05,fatigue:2}],
+        ['Je fais un échauffement plus long',{fatigue:4,form:1}]
+      ]
+    },
+    {
+      title:'Le coach te confie une mission',
+      text:'Il veut que tu sois agressif et concentré.',
+      choices:[
+        ['Je lui dis qu’il peut compter sur moi',{coach:3,mental:2}],
+        ['Je demande plus de liberté',{coach:-1,tech:1}],
+        ['Je reste silencieux',{mental:1}],
+        ['Je motive les autres',{locker:3,mental:2}]
+      ]
+    }
+  ];
+
+  state.season.preMatch=pick(pool);
+}
+
+function matchAction(){
+  if(state.season.matchAction) return;
+  const r=role();
+
+  const pools={
+    GK:[
+      {
+        text:'Face-à-face avec l’attaquant',
+        choices:[
+          ['Je sors vite','physical','warrior'],
+          ['Je reste debout','mental','leader'],
+          ['Je plonge dans ses pieds','speed','warrior'],
+          ['Je réduis l’angle sans me jeter','mental','creator']
+        ]
+      },
+      {
+        text:'Penalty pour l’adversaire',
+        choices:[
+          ['Je plonge à gauche','mental','artist'],
+          ['Je plonge à droite','mental','artist'],
+          ['Je reste au centre','mental','leader'],
+          ['J’attends le dernier instant','mental','creator'],
+          ['J’intimide le tireur','mental','warrior']
+        ]
+      },
+      {
+        text:'Relance après un arrêt',
+        choices:[
+          ['Relance courte au défenseur','tech','creator'],
+          ['Relance rapide à la main','mental','creator'],
+          ['Long dégagement vers l’ailier','physical','warrior'],
+          ['Je temporise pour calmer le jeu','mental','leader']
+        ]
       }
+    ],
+    DEF:[
+      {
+        text:'L’attaquant te provoque en un contre un',
+        choices:[
+          ['Je temporise','mental','leader'],
+          ['Je tacle debout','physical','warrior'],
+          ['Je glisse pour couper le ballon','physical','warrior'],
+          ['Je l’oriente vers la ligne','speed','creator'],
+          ['Je fais une faute tactique','mental','warrior']
+        ]
+      },
+      {
+        text:'Tu récupères le ballon sous pression',
+        choices:[
+          ['Relance courte','tech','creator'],
+          ['Transversale vers l’ailier','tech','creator'],
+          ['Je dégage en touche','physical','warrior'],
+          ['Je monte balle au pied','speed','artist'],
+          ['Je rends au gardien','mental','leader']
+        ]
+      },
+      {
+        text:'Corner adverse dans les dernières minutes',
+        choices:[
+          ['Je prends le meilleur joueur','mental','leader'],
+          ['Je dégage de la tête','physical','warrior'],
+          ['Je laisse le gardien sortir','mental','creator'],
+          ['Je pars en contre dès le dégagement','speed','artist']
+        ]
+      }
+    ],
+    MID:[
+      {
+        text:'Tu récupères le ballon dans l’axe',
+        choices:[
+          ['Passe en profondeur sur un pas','tech','creator'],
+          ['Transversale de 40 mètres','tech','creator'],
+          ['Je porte le ballon','speed','artist'],
+          ['Je cherche le coup franc','mental','artist'],
+          ['Je tente la frappe de loin','tech','finisher']
+        ]
+      },
+      {
+        text:'Contre-attaque à trois contre deux',
+        choices:[
+          ['Je décale l’ailier','mental','creator'],
+          ['Je joue dans la profondeur','tech','creator'],
+          ['Je conserve pour attendre du soutien','mental','leader'],
+          ['Je tente seul','speed','artist'],
+          ['Je frappe de 25 mètres','tech','finisher']
+        ]
+      },
+      {
+        text:'Coup franc à 25 mètres',
+        choices:[
+          ['Je centre au second poteau','tech','creator'],
+          ['Je joue vite','mental','creator'],
+          ['Je frappe enroulé','tech','artist'],
+          ['Je frappe en force','physical','finisher'],
+          ['Je laisse le spécialiste tirer','mental','leader']
+        ]
+      }
+    ],
+    ATT:[
+      {
+        text:'Tu te retrouves seul face au gardien',
+        choices:[
+          ['Frappe petit filet','tech','finisher'],
+          ['En force sous la barre','physical','finisher'],
+          ['Lob au-dessus du gardien','tech','artist'],
+          ['Dribble le gardien','speed','artist'],
+          ['Passe au coéquipier mieux placé','mental','creator'],
+          ['Frappe croisée première intention','tech','finisher']
+        ]
+      },
+      {
+        text:'Penalty pour ton équipe',
+        choices:[
+          ['Je laisse le spécialiste tirer','mental','leader'],
+          ['Petit filet gauche','tech','finisher'],
+          ['Petit filet droit','tech','finisher'],
+          ['Pleine lucarne','tech','artist'],
+          ['En force plein axe','physical','warrior'],
+          ['Panenka','mental','artist']
+        ]
+      },
+      {
+        text:'Centre venu de la droite',
+        choices:[
+          ['Reprise de volée','tech','artist'],
+          ['Contrôle puis frappe','tech','finisher'],
+          ['Tête décroisée','physical','finisher'],
+          ['Remise pour un coéquipier','mental','creator'],
+          ['Je laisse passer au second poteau','mental','creator']
+        ]
+      }
+    ]
+  };
 
-      window.location.href = "carriere.html";
-    });
-  </script>
+  const action=pick(pools[r]);
+  state.season.matchAction={
+    minute:rand(6,88),
+    text:action.text,
+    choices:action.choices
+  };
+}
+
+function maybeInjury(source){
+  const p=state.player;
+  let risk=.015+p.fatigue/(source==='match'?500:650)+(p.physical<45?.025:0);
+  if(Math.random()>=risk) return false;
+  const b=pick([
+    {n:'contracture',w:1},{n:'élongation',w:2},
+    {n:'entorse',w:3},{n:'lésion musculaire',w:4}
+  ]);
+  p.injury=b.n;p.injuryWeeks=b.w;p.form=clamp(p.form-10);
+  log('Blessure',`${b.n}, indisponible ${b.w} journée(s).`);
+  return true;
+}
+
+function simulateAbsent(reason,recovery=0){
+  const m=teamMatch();
+  if(!m) return;
+  let h=rand(0,3),a=rand(0,3);
+  record(m.home,m.away,h,a);
+  simulateOthers();
+  state.player.fatigue=clamp(state.player.fatigue-recovery);
+  state.season.lastResult={home:m.home,away:m.away,h,a,absent:true,reason};
+  state.season.phase='result';
+  log('Match sans toi',`${m.home} ${h}-${a} ${m.away}. ${reason}`);
+  save();render();
+}
+
+function playMatch(){
+  const p=state.player,m=teamMatch();
+  if(!m) return;
+
+  let avg=(p.tech+p.speed+p.physical+p.mental)/4;
+  let perf=avg+p.form*.22+p.coach*.18-p.fatigue*.28+
+    (state.season.actionBonus||0)+Math.random()*32;
+
+  let starter=perf>=62&&!state.season.forceBench;
+  let note=starter
+    ?(perf<72?5.5+Math.random():perf<90?6.4+Math.random()*1.2:7.7+Math.random()*1.2)
+    :4.8+Math.random()*1.2;
+
+  let g=state.season.actionGoal||0;
+  let as=state.season.actionAssist||0;
+  let saves=0,pen=0;
+  const r=role();
+
+  if(starter){
+    if(r==='GK'){
+      saves=rand(2,8);pen=Math.random()<.07?1:0;
+      g=Math.max(g,Math.random()<.002?1:0);
+      as=Math.max(as,Math.random()<.008?1:0);
+    }else if(r==='DEF'){
+      g=Math.max(g,Math.random()<.12?1:0);
+      as=Math.max(as,Math.random()<.20?1:0);
+    }else if(r==='MID'){
+      g=Math.max(g,Math.random()<.25?1:0);
+      as=Math.max(as,Math.random()<.38?1:0);
+    }else{
+      g=Math.max(g,Math.random()<.48?1:0);
+      as=Math.max(as,Math.random()<.30?1:0);
+    }
+  }
+
+  let teamGoals=Math.max(g,Math.max(0,Math.floor(Math.random()*4*(1+p.form/180-p.fatigue/320))));
+  let oppGoals=r==='GK'&&perf>78?rand(0,1):rand(0,3);
+  let h=m.home===p.club?teamGoals:oppGoals;
+  let a=m.home===p.club?oppGoals:teamGoals;
+
+  record(m.home,m.away,h,a);
+  simulateOthers();
+
+  let card='';
+  let cr=Math.random();
+  if(cr<.04){p.cardsWhite++;card='Carton blanc : exclusion temporaire.';note-=.4}
+  else if(cr<.075){p.cardsYellow++;card='Carton jaune.'}
+  else if(cr<.09){p.cardsRed++;p.suspension=1;card='Carton rouge : suspension.';note-=1.1}
+
+  p.matches++;p.goals+=g;p.assists+=as;p.sumRating+=note;
+  if(note>=8)p.motm++;
+  p.fatigue=clamp(p.fatigue+14);
+
+  if(r==='GK'){
+    let conceded=m.home===p.club?a:h;
+    p.saves+=saves;p.goalsConceded+=conceded;p.pensSaved+=pen;
+    if(conceded===0&&starter)p.cleanSheets++;
+  }
+
+  maybeInjury('match');
+
+  state.season.lastResult={
+    home:m.home,away:m.away,h,a,absent:false,starter,note,g,as,saves,pen,card
+  };
+  state.season.phase='result';
+  log('Match',`${m.home} ${h}-${a} ${m.away}, note ${note.toFixed(1)}.`);
+  save();render();
+}
+
+function strengthsAndWeaknesses(){
+  const p=state.player;
+  const values=[
+    ['Technique',p.tech],['Vitesse',p.speed],
+    ['Physique',p.physical],['Mental',p.mental],
+    ['Confiance coach',p.coach],['Moral',p.morale]
+  ].sort((a,b)=>b[1]-a[1]);
+
+  const strengths=values.slice(0,3).map(x=>`${x[0]} (${Math.round(x[1])})`);
+  const weaknesses=values.slice(-3).reverse().map(x=>`${x[0]} (${Math.round(x[1])})`);
+
+  if(p.cardsRed+p.cardsYellow>3) weaknesses.push('Discipline à améliorer');
+  if(p.fatigue>70) weaknesses.push('Gestion de la fatigue');
+  if(p.coach>70) strengths.push('Très apprécié du coach');
+  if(p.morale>75) strengths.push('État d’esprit positif');
+
+  return {strengths,weaknesses};
+}
+
+function opportunities(){
+  const p=state.player;
+  const list=[];
+
+  if(p.age===13) list.push('Détection au Pôle Espoirs de Castelmaurou');
+  if(p.age===14&&!p.pole) list.push('Tournoi des Violettes au Stadium');
+  if(p.age===15) list.push('Tournoi international de Blanes');
+  if(p.age===16||p.age===17) list.push('Tournoi de Cahors devant des recruteurs');
+  if(p.age===18) list.push('Coupe Gambardella');
+  if(p.age>=18&&state.league.level==='Seniors régionaux') list.push('Épopée possible en Coupe de France');
+  if(p.reputation>=45) list.push('Centre de formation de niveau Ligue 2 possible');
+  if(p.reputation>=65) list.push('Centre de formation ou club de Ligue 1 possible');
+  if(p.age>=18&&p.reputation>=55) list.push(`Sélection avec ${p.nationality}`);
+  if(p.coach<35) list.push('Risque de perdre ta place');
+  if(p.fatigue>75) list.push('Repos conseillé pour éviter une blessure');
+
+  return list;
+}
+
+function reportHTML(title){
+  const p=state.player;
+  const sw=strengthsAndWeaknesses();
+  const opp=opportunities();
+  const start=p.seasonStartStats||{tech:p.tech,speed:p.speed,physical:p.physical,mental:p.mental};
+  const place=sortedTable().findIndex(t=>t.name===p.club)+1;
+
+  return `<div class="card">
+    <h2>📄 ${title}</h2>
+    <div class="report-grid">
+      <div class="report-box">
+        <h3>Identité</h3>
+        <p>${p.first} ${p.last}</p>
+        <p>${p.age} ans • ${p.pos}</p>
+        <p>${p.club} • ${state.league.level}</p>
+        <p>Nationalité : ${p.nationality}${p.secondNationality?' / '+p.secondNationality:''}</p>
+      </div>
+      <div class="report-box">
+        <h3>Statistiques</h3>
+        <p>Matchs : ${p.matches}</p>
+        <p>Note moyenne : ${rating().toFixed(1)}</p>
+        ${role()==='GK'
+          ?`<p>Arrêts : ${p.saves}</p><p>Clean sheets : ${p.cleanSheets}</p><p>Buts encaissés : ${p.goalsConceded}</p>`
+          :`<p>Buts : ${p.goals}</p><p>Passes décisives : ${p.assists}</p>`}
+        <p>Classement du club : ${place}e</p>
+      </div>
+      <div class="report-box">
+        <h3>Évolution</h3>
+        <p>Technique : ${p.tech-start.tech>=0?'+':''}${p.tech-start.tech}</p>
+        <p>Vitesse : ${p.speed-start.speed>=0?'+':''}${p.speed-start.speed}</p>
+        <p>Physique : ${p.physical-start.physical>=0?'+':''}${p.physical-start.physical}</p>
+        <p>Mental : ${p.mental-start.mental>=0?'+':''}${p.mental-start.mental}</p>
+      </div>
+      <div class="report-box">
+        <h3>Qualités</h3>
+        ${sw.strengths.map(x=>`<p class="positive">⭐ ${x}</p>`).join('')}
+      </div>
+      <div class="report-box">
+        <h3>Défauts</h3>
+        ${sw.weaknesses.map(x=>`<p class="negative">⚠ ${x}</p>`).join('')}
+      </div>
+      <div class="report-box">
+        <h3>Opportunités</h3>
+        ${opp.length?opp.map(x=>`<p>➡ ${x}</p>`).join(''):'<p>Aucune opportunité majeure actuellement.</p>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+function detectProfile(){
+  const p=state.player;
+  if(p.age<18||p.profile!=='Non défini') return;
+
+  const entries=Object.entries(p.styleCounters).sort((a,b)=>b[1]-a[1]);
+  const key=entries[0][0];
+  const names={
+    creator:'Créateur',warrior:'Guerrier',artist:'Artiste',
+    finisher:'Finisseur',leader:'Patron'
+  };
+  p.profile=names[key]||'Polyvalent';
+  log('Profil révélé à 18 ans',`Ton profil de carrière est : ${p.profile}.`);
+}
+
+function internationalCompetition(){
+  const p=state.player;
+  if(p.age<18||p.reputation<55) return '';
+
+  if(p.internationalTeam==='Aucune'){
+    const choices=[p.nationality];
+    if(p.secondNationality) choices.push(p.secondNationality);
+    p.internationalTeam=pick(choices);
+    log('Sélection nationale',`Première convocation avec ${p.internationalTeam}.`);
+  }
+
+  p.internationalCaps+=rand(1,5);
+  if(role()==='ATT'||role()==='MID') p.internationalGoals+=rand(0,2);
+
+  const competitions=['Ligue des Nations','Euro','Coupe du Monde'];
+  const comp=competitions[(p.age-18)%competitions.length];
+  const strength=NATION_STRENGTH[p.internationalTeam]||70;
+  const chance=(strength+p.reputation+rating()*5)/3;
+  let result=chance>88&&Math.random()<.35?'Victoire finale':
+    chance>78?'Demi-finale ou finale':'Élimination avant le dernier carré';
+
+  if(result==='Victoire finale'&&!p.titles.includes(comp)){
+    p.titles.push(comp);
+  }
+
+  return `${comp} avec ${p.internationalTeam} : ${result}.`;
+}
+
+function gambardella(){
+  const p=state.player;
+  if(p.age!==18) return '';
+  const perf=(p.tech+p.speed+p.physical+p.mental)/4+p.form*.2+p.reputation*.2+Math.random()*30;
+  const result=perf>90?'Victoire en Coupe Gambardella':
+    perf>80?'Demi-finale de Gambardella':
+    perf>70?'Huitième ou quart de finale':'Élimination dans les premiers tours';
+  if(result.startsWith('Victoire')) p.titles.push('Coupe Gambardella');
+  p.reputation=clamp(p.reputation+(perf>90?15:perf>80?9:perf>70?5:2));
+  return result+'.';
+}
+
+function coupeDeFrance(){
+  const p=state.player;
+  if(p.age<18||state.league.level!=='Seniors régionaux') return '';
+
+  const perf=(p.tech+p.speed+p.physical+p.mental)/4+p.form*.2+p.reputation*.15+Math.random()*35;
+  let result;
+
+  if(perf<60) result='Élimination dans les premiers tours régionaux';
+  else if(perf<72) result='Parcours jusqu’au 7e tour';
+  else if(perf<82) result='Qualification en 64es de finale face à un club professionnel';
+  else if(perf<91) result='Exploit jusqu’en 16es de finale contre un club de Ligue 1 ou Ligue 2';
+  else result='Épopée historique jusqu’en quart ou demi-finale';
+
+  if(perf>=72) p.reputation=clamp(p.reputation+rand(6,14));
+  return `Coupe de France : ${result}.`;
+}
+
+function endSeason(){
+  if(state.season.seasonProcessed) return;
+  state.season.seasonProcessed=true;
+  const p=state.player;
+  const place=sortedTable().findIndex(t=>t.name===p.club)+1;
+  const gain=Math.max(
+    2,
+    Math.floor((rating()-6)*7)+p.goals+p.assists+p.motm*2+(place<=3?6:0)
+  );
+
+  p.reputation=clamp(p.reputation+gain);
+
+  let extras=[];
+
+  if(p.age===13&&!p.poleAttempted){
+    p.poleAttempted=true;
+    const score=(p.tech+p.speed+p.physical+p.mental)/4+
+      p.coach*.2+p.mental*.15+Math.random()*25;
+
+    if(score>=78){
+      p.pole=true;p.national=true;p.club='Pôle Espoirs de Castelmaurou';
+      state.season.special='Retenu au Pôle Espoirs de Castelmaurou : passage en championnat national jeunes.';
+    }else{
+      state.season.special='Non retenu à Castelmaurou : poursuite en régional et Tournoi des Violettes à 14 ans.';
+    }
+    extras.push(state.season.special);
+    log('Castelmaurou',state.season.special);
+  }
+
+  let tournament=null;
+  if(p.age===14&&!p.pole)tournament='Tournoi des Violettes au Stadium';
+  if(p.age===15)tournament='Tournoi international de Blanes';
+  if(p.age===16||p.age===17)tournament='Tournoi de Cahors';
+
+  if(tournament&&!p.tournaments.includes(tournament)){
+    p.tournaments.push(tournament);
+    const perf=(p.tech+p.speed+p.physical+p.mental)/4+p.form*.2+p.coach*.15+Math.random()*30;
+    const result=perf>=88?'finale et révélation du tournoi':
+      perf>=74?'demi-finale':perf>=62?'quart de finale':'phase de poules';
+
+    let text=`${tournament} : ${result}.`;
+    p.reputation=clamp(p.reputation+(perf>=88?12:perf>=74?7:perf>=62?3:1));
+
+    if(perf>=74){
+      const eligible=PRO_LEVELS.filter(x=>p.reputation>=x.min);
+      if(eligible.length){
+        const lev=eligible[eligible.length-1],club=pick(lev.clubs);
+        p.academy=`${club} - Centre de formation`;
+        p.club=p.academy;p.national=true;
+        text+=` Un recruteur de ${club} te fait signer en centre de formation (${lev.name}).`;
+      }
+    }
+    extras.push(text);
+    log(tournament,text);
+  }
+
+  const gamb=gambardella();
+  if(gamb){extras.push(gamb);log('Gambardella',gamb)}
+
+  const cdf=coupeDeFrance();
+  if(cdf){extras.push(cdf);log('Coupe de France',cdf)}
+
+  const intl=internationalCompetition();
+  if(intl){extras.push(intl);log('Sélection',intl)}
+
+  detectProfile();
+
+  state.season.endReport=reportHTML('Bilan de fin de saison');
+  state.season.endExtras=extras.join('<br><br>');
+  p.history.push({
+    age:p.age,club:p.club,level:state.league.level,matches:p.matches,
+    goals:p.goals,assists:p.assists,rating:rating().toFixed(1),place
+  });
+
+  log('Bilan de saison',`Place ${place}/10, réputation +${gain}.`);
+  save();
+}
+
+function nextSeason(){
+  const p=state.player;
+  p.age++;
+  detectProfile();
+
+  state.season={
+    round:1,phase:'preseason',journal:state.season.journal,
+    weekEvent:null,trainingEvent:null,preMatch:null,matchAction:null,
+    lastResult:null,absenceReason:'',seasonProcessed:false,
+    midReportDone:false,endReport:null,midReport:null,preseasonDone:false,
+    forceBench:false,actionBonus:0,actionGoal:0,actionAssist:0
+  };
+
+  let level=p.national?'National jeunes':(p.age>=18?'Seniors régionaux':'Régional jeunes');
+  p.fatigue=clamp(p.fatigue-30);
+  p.form=clamp(p.form+8);
+  state.league=makeLeague(p.club,level);
+  save();render();
+}
+
+function resetWeek(){
+  state.season.round++;
+
+  if(state.season.round===10&&!state.season.midReportDone){
+    state.season.phase='midReport';
+    state.season.midReport=reportHTML('Bilan de mi-saison');
+    state.season.midReportDone=true;
+  }else{
+    state.season.phase='life';
+  }
+
+  state.season.weekEvent=null;
+  state.season.trainingEvent=null;
+  state.season.preMatch=null;
+  state.season.matchAction=null;
+  state.season.lastResult=null;
+  state.season.forceBench=false;
+  state.season.actionBonus=0;
+  state.season.actionGoal=0;
+  state.season.actionAssist=0;
+  state.season.restDecision=false;
+
+  if(state.player.suspension>0) state.player.suspension--;
+  save();render();
+}
+
+function renderHeader(){
+  const p=state.player;
+  $('playerName').textContent=`${p.first} ${p.last}`;
+  $('playerSummary').textContent=`${p.pos} • ${p.club} • ${p.nationality}`;
+  $('ageBadge').textContent=`${p.age} ans`;
+  $('roundBadge').textContent=state.season.round<=18?`Journée ${state.season.round}/18`:'Saison terminée';
+  $('levelBadge').textContent=state.league.level;
+}
+
+function renderPerformance(r){
+  const p=state.player;
+  let x=`Statut : ${r.starter?'Titulaire':'Remplaçant'}<br>Note : ${r.note.toFixed(1)}/10`;
+
+  if(role()==='GK'){
+    x+=`<br>Arrêts : ${r.saves}<br>Buts encaissés : ${r.home===p.club?r.a:r.h}<br>Penalty arrêté : ${r.pen?'Oui':'Non'}`;
+  }else{
+    x+=`<br>Buts : ${r.g}<br>Passes décisives : ${r.as}`;
+  }
+
+  if(r.card)x+=`<br>${r.card}`;
+  return x;
+}
+
+function renderWeek(){
+  const box=$('tab-week'),p=state.player,s=state.season;
+
+  if(s.round>18){
+    endSeason();
+    box.innerHTML=`
+      ${s.endReport||''}
+      ${s.endExtras?`<div class="card"><h2>Compétitions et opportunités</h2><div class="message">${s.endExtras}</div></div>`:''}
+      <div class="card"><h2>Classement final</h2>${tableHTML()}
+      <button data-act="nextSeason">Saison suivante</button></div>`;
+    return;
+  }
+
+  if(s.phase==='preseason'){
+    const options=preseasonOptions();
+    box.innerHTML=`<div class="card choice">
+      <h2>☀️ Préparation d’avant-saison</h2>
+      <p>Choisis une seule préparation. Certains stages exigent un niveau minimum.</p>
+      ${options.map((o,i)=>`
+        <button data-act="preseasonChoice" data-i="${i}">
+          ${o.name}${o.admitted?'':' — candidature incertaine'}
+        </button>
+        <div class="muted">${o.desc}</div>`).join('')}
+    </div>`;
+    return;
+  }
+
+  if(s.phase==='midReport'){
+    box.innerHTML=`${s.midReport}<div class="card"><button data-act="continueMid">Continuer la saison</button></div>`;
+    return;
+  }
+
+  if(p.injuryWeeks>0&&s.phase!=='result'){
+    box.innerHTML=`<div class="card">
+      <h2>🚑 Blessure</h2>
+      <p>${p.injury} : encore ${p.injuryWeeks} journée(s).</p>
+      <button data-act="injuredAbsent">Voir le match joué sans toi</button>
+    </div>`;
+    return;
+  }
+
+  if(p.suspension>0&&s.phase!=='result'){
+    box.innerHTML=`<div class="card">
+      <h2>🟥 Suspension</h2>
+      <p>Tu es suspendu pour cette rencontre.</p>
+      <button data-act="suspendedAbsent">Voir le match joué sans toi</button>
+    </div>`;
+    return;
+  }
+
+  if(s.phase==='life'){
+    createWeekEvent();
+    if(s.weekEvent){
+      box.innerHTML=`<div class="card choice">
+        <h2>${s.weekEvent.title}</h2>
+        <p>${s.weekEvent.text}</p>
+        ${s.weekEvent.choices.map((c,i)=>`
+          <button data-act="lifeChoice" data-i="${i}">${c[0]}</button>`).join('')}
+      </div>`;
+    }else{
+      box.innerHTML=`<div class="card">
+        <h2>Début de semaine</h2>
+        <p>Une semaine calme commence. Le coach observe simplement ton état de forme.</p>
+        <button data-act="goTraining">Aller à l’entraînement</button>
+      </div>`;
+    }
+    return;
+  }
+
+  if(s.phase==='training'){
+    if(!s.trainingEvent)s.trainingEvent=trainingEvent();
+    box.innerHTML=`<div class="card choice">
+      <h2>${s.trainingEvent.title}</h2>
+      <div class="message">${s.trainingEvent.text}</div>
+      ${s.trainingEvent.choices.map((c,i)=>`
+        <button data-act="trainingChoice" data-i="${i}">${c[0]}</button>`).join('')}
+    </div>`;
+    return;
+  }
+
+  if(s.phase==='prematch'){
+    preMatchEvent();
+    if(s.preMatch){
+      box.innerHTML=`<div class="card choice">
+        <h2>${s.preMatch.title}</h2>
+        <p>${s.preMatch.text}</p>
+        ${s.preMatch.choices.map((c,i)=>`
+          <button data-act="preChoice" data-i="${i}">${c[0]}</button>`).join('')}
+      </div>`;
+    }else{
+      s.phase='action';save();render();
+    }
+    return;
+  }
+
+  if(s.phase==='action'){
+    matchAction();
+    const a=s.matchAction;
+    box.innerHTML=`<div class="card choice">
+      <h2>⚽ ${a.minute}e minute</h2>
+      <p class="big">${a.text}</p>
+      ${a.choices.map((c,i)=>`
+        <button data-act="actionChoice" data-i="${i}">${c[0]}</button>`).join('')}
+    </div>`;
+    return;
+  }
+
+  if(s.phase==='ready'){
+    if(p.fatigue>=70&&!s.restDecision){
+      box.innerHTML=`<div class="card">
+        <h2>Fatigue importante</h2>
+        <p>Tu peux demander à ne pas être retenu et récupérer 25 points de fatigue.</p>
+        <button data-act="rest">Je demande à ne pas être retenu</button>
+        <button class="secondary" data-act="playTired">Je joue quand même</button>
+      </div>`;
+    }else{
+      const m=teamMatch();
+      box.innerHTML=`<div class="card">
+        <h2>Match de championnat</h2>
+        <p class="big">${m?m.home+' contre '+m.away:'Aucun match'}</p>
+        <button data-act="play">Jouer le match</button>
+      </div>`;
+    }
+    return;
+  }
+
+  if(s.phase==='result'){
+    const r=s.lastResult;
+    box.innerHTML=`<div class="card">
+      <h2>Résultat</h2>
+      <div class="score">${r.home} ${r.h} - ${r.a} ${r.away}</div>
+      <div class="message">${r.absent?`Tu étais absent : ${r.reason}.`:renderPerformance(r)}</div>
+      <h3>Classement</h3>${tableHTML()}
+      <button data-act="nextRound">Journée suivante</button>
+    </div>`;
+  }
+}
+
+function renderTabs(){
+  const p=state.player;
+
+  $('tab-player').innerHTML=`
+    <div class="card"><h2>État</h2>
+      ${statLine('Fatigue',p.fatigue)}
+      ${statLine('Forme',p.form)}
+      ${statLine('Confiance coach',p.coach)}
+      ${statLine('Moral',p.morale)}
+      ${statLine('École',p.school)}
+    </div>
+    <div class="card"><h2>Qualités</h2>
+      ${statLine('Technique',p.tech)}
+      ${statLine('Vitesse',p.speed)}
+      ${statLine('Physique',p.physical)}
+      ${statLine('Mental',p.mental)}
+    </div>
+    <div class="card"><h2>Carrière</h2>
+      <p>Matchs : ${p.matches}</p>
+      <p>Note moyenne : ${rating().toFixed(1)}</p>
+      <p>Réputation : ${p.reputation}/100</p>
+      <p>Profil à 18 ans : <strong>${p.profile}</strong></p>
+      ${role()==='GK'
+        ?`<p>Arrêts : ${p.saves}</p><p>Clean sheets : ${p.cleanSheets}</p><p>Penalties arrêtés : ${p.pensSaved}</p><p>Buts encaissés : ${p.goalsConceded}</p>`
+        :`<p>Buts : ${p.goals}</p><p>Passes : ${p.assists}</p>`}
+      <p>Cartons blancs : ${p.cardsWhite} • jaunes : ${p.cardsYellow} • rouges : ${p.cardsRed}</p>
+    </div>`;
+
+  $('tab-standing').innerHTML=`<div class="card"><h2>${state.league.level}</h2>${tableHTML()}</div>`;
+
+  $('tab-journal').innerHTML=`<div class="card"><h2>Journal</h2>
+    ${state.season.journal.map(j=>`
+      <div class="journal"><strong>${j.title}</strong>
+      <div class="muted">${j.text}</div></div>`).join('')||'<p>Aucun événement.</p>'}
+  </div>`;
+
+  $('tab-future').innerHTML=`<div class="card"><h2>Avenir</h2>
+    ${statLine('Réputation',p.reputation)}
+    ${statLine('Potentiel',p.potential)}
+    <p>Nationalité : <strong>${p.nationality}${p.secondNationality?' / '+p.secondNationality:''}</strong></p>
+    <p>Sélection : <strong>${p.internationalTeam}</strong></p>
+    <p>Matchs internationaux : <strong>${p.internationalCaps}</strong></p>
+    <p>Pôle Castelmaurou : <strong>${p.pole?'Retenu':p.poleAttempted?'Non retenu':'À venir'}</strong></p>
+    <p>Centre de formation : <strong>${p.academy}</strong></p>
+    <p>Niveau actuel : <strong>${state.league.level}</strong></p>
+    <p>Tournois : ${p.tournaments.join(', ')||'Aucun'}</p>
+    <p>Titres : ${p.titles.join(', ')||'Aucun'}</p>
+  </div>`;
+}
+
+function render(){
+  if(!state)return;
+  renderHeader();renderWeek();renderTabs();save();
+}
+
+function show(id){
+  ['home','creation','game'].forEach(x=>$(x).classList.toggle('hidden',x!==id));
+}
+
+$('newCareer').onclick=()=>show('creation');
+$('backHome').onclick=()=>show('home');
+$('continueCareer').onclick=()=>{
+  state=load();
+  if(!state)return alert('Aucune sauvegarde.');
+  show('game');render();
+};
+
+$('startCareer').onclick=()=>{
+  const f=$('firstName').value.trim();
+  const l=$('lastName').value.trim();
+  const p=$('position').value;
+  const c=$('startClub').value;
+  const n=$('nationality').value;
+  const n2=$('secondNationality').value;
+
+  if(!f||!l||!p)return alert('Complète les informations.');
+
+  state=newState(f,l,p,c,n,n2);
+  log('Début de carrière',`Arrivée au ${c} à 13 ans.`);
+  save();show('game');render();
+};
+
+$('homeBtn').onclick=()=>show('home');
+$('saveBtn').onclick=()=>{save();alert('Sauvegarde effectuée.')};
+$('deleteBtn').onclick=()=>{
+  if(confirm('Supprimer la carrière ?')){
+    localStorage.removeItem(SAVE_KEY);state=null;show('home');
+  }
+};
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  ['week','player','standing','journal','future'].forEach(
+    x=>$('tab-'+x).classList.toggle('hidden',x!==b.dataset.tab)
+  );
+});
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');
+  if(!b||!state)return;
+
+  const a=b.dataset.act,p=state.player,s=state.season;
+
+  if(a==='preseasonChoice'){
+    const option=preseasonOptions()[+b.dataset.i];
+    if(!option.admitted){
+      log('Candidature refusée',`${option.name} : ton niveau actuel n’est pas suffisant.`);
+      alert('Ta candidature n’est pas retenue cette année.');
+      return;
+    }
+
+    p.seasonStartStats={tech:p.tech,speed:p.speed,physical:p.physical,mental:p.mental};
+    apply(option.effects);
+    log('Préparation estivale',option.name);
+    s.phase='life';s.preseasonDone=true;save();render();
+  }
+
+  else if(a==='lifeChoice'){
+    const c=s.weekEvent.choices[+b.dataset.i];
+    apply(c[1]);log(s.weekEvent.title,`Choix : ${c[0]}`);
+    s.phase=c[1].skipTraining?'prematch':'training';
+    save();render();
+  }
+
+  else if(a==='goTraining'){
+    s.phase='training';render();
+  }
+
+  else if(a==='trainingChoice'){
+    const c=s.trainingEvent.choices[+b.dataset.i];
+    apply(c[1]);log(s.trainingEvent.title,`Choix : ${c[0]}`);
+    maybeInjury('training');
+    s.phase='prematch';save();render();
+  }
+
+  else if(a==='preChoice'){
+    const c=s.preMatch.choices[+b.dataset.i];
+    apply(c[1]);
+    if(c[1].risk&&Math.random()<c[1].risk)maybeInjury('match');
+    log(s.preMatch.title,`Choix : ${c[0]}`);
+    s.phase='action';save();render();
+  }
+
+  else if(a==='actionChoice'){
+    const ac=s.matchAction;
+    const choice=ac.choices[+b.dataset.i];
+    const stat=choice[1],style=choice[2];
+
+    p.styleCounters[style]=(p.styleCounters[style]||0)+1;
+
+    let success=.45+(p[stat]-50)/120;
+    if(choice[0].includes('Panenka')) success-=.10;
+    if(choice[0].includes('Pleine lucarne')) success-=.08;
+    if(choice[0].includes('faute tactique')) success=.70;
+
+    const ok=Math.random()<clamp(success,.12,.88);
+    s.actionBonus=ok?8:-4;
+
+    if(ok&&role()==='ATT'){
+      if(choice[0].includes('Passe'))s.actionAssist=1;
+      else if(!choice[0].includes('laisse'))s.actionGoal=Math.random()<.62?1:0;
+    }
+
+    if(ok&&role()==='MID'){
+      if(choice[0].includes('Passe')||choice[0].includes('Transversale')||choice[0].includes('profondeur'))s.actionAssist=Math.random()<.45?1:0;
+      if(choice[0].includes('frappe'))s.actionGoal=Math.random()<.28?1:0;
+    }
+
+    log(`${ac.minute}e minute`,ok?`Action réussie : ${choice[0]}.`:`Action ratée : ${choice[0]}.`);
+    s.phase='ready';save();render();
+  }
+
+  else if(a==='rest'){
+    simulateAbsent('Repos demandé en raison d’une forte fatigue',25);
+  }
+
+  else if(a==='playTired'){
+    s.restDecision=true;render();
+  }
+
+  else if(a==='play'){
+    playMatch();
+  }
+
+  else if(a==='nextRound'){
+    resetWeek();
+  }
+
+  else if(a==='injuredAbsent'){
+    simulateAbsent(`Blessure : ${p.injury}`,15);
+    p.injuryWeeks--;
+    if(p.injuryWeeks<=0){p.injuryWeeks=0;p.injury=''}
+  }
+
+  else if(a==='suspendedAbsent'){
+    simulateAbsent('Suspension',0);
+  }
+
+  else if(a==='continueMid'){
+    s.phase='life';save();render();
+  }
+
+  else if(a==='nextSeason'){
+    nextSeason();
+  }
+});
+
+show('home');
+</script>
 </body>
 </html>
