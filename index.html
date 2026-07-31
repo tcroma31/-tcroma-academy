@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V3.2 — LE FOOTBALL AMATEUR</title>
+<title>TCROMA ACADEMY V3.3 — FOOTBALL PROFESSIONNEL</title>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#06140d;--card:#10291b;--card2:#183b27;--line:#2b5a3c;--txt:#f5fbf7;--muted:#b7cbbc;--gold:#f4cb47;--red:#8c3434;--green:#2bb768;--blue:#3674c8}
@@ -37,10 +37,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 
 <section id="home" class="hero">
   <div class="card center">
-    <div class="muted">TCROMA Studio présente</div>
-    <h1>⚽ TCROMA ACADEMY V3.2 — LE FOOTBALL AMATEUR</h1>
+    <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
+    <h1>⚽ TCROMA ACADEMY V3.3 — FOOTBALL PROFESSIONNEL</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
-    <p>De 13 ans aux seniors : football amateur, derbys, supporters, mercato et carrière.</p><p class="muted">Version 3.2 — Le Football Amateur</p>
+    <p>De 13 ans aux seniors : carrière professionnelle, Europe, sélection et grandes récompenses.</p><p class="muted">Version 3.3 — Football professionnel</p>
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
   </div>
@@ -123,14 +123,14 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
     <button class="tab" data-tab="player">Joueur</button>
     <button class="tab" data-tab="standing">Classement</button>
     <button class="tab" data-tab="journal">Journal</button>
-    <button class="tab" data-tab="future">Avenir</button><button class="tab" data-tab="honours">Palmarès</button><button class="tab" data-tab="money">Finances</button><button class="tab" data-tab="market">Mercato</button>
+    <button class="tab" data-tab="future">Avenir</button><button class="tab" data-tab="honours">Palmarès</button><button class="tab" data-tab="money">Finances</button><button class="tab" data-tab="market">Mercato</button><button class="tab" data-tab="pro">Pro</button>
   </nav>
 
   <section id="tab-week"></section>
   <section id="tab-player" class="hidden"></section>
   <section id="tab-standing" class="hidden"></section>
   <section id="tab-journal" class="hidden"></section>
-  <section id="tab-future" class="hidden"></section><section id="tab-honours" class="hidden"></section><section id="tab-money" class="hidden"></section><section id="tab-market" class="hidden"></section>
+  <section id="tab-future" class="hidden"></section><section id="tab-honours" class="hidden"></section><section id="tab-money" class="hidden"></section><section id="tab-market" class="hidden"></section><section id="tab-pro" class="hidden"></section>
 
   <div class="card">
     <button id="saveBtn" class="secondary">Sauvegarder</button>
@@ -144,7 +144,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV32';
+const SAVE_KEY = 'tcromaAcademyV33';
 
 const REGIONAL = [
   'EFCV Verfeil','FC Girou',"L'Union Saint-Jean",'FC Lauragais',
@@ -190,6 +190,113 @@ const REGIONAL_TRIAL_CLUBS = [
   {name:'FC Lavaur',level:'R1/R2',need:['Milieu relayeur','Ailier gauche','Gardien']},
   {name:'Balma SC',level:'R1/N3',need:['Attaquant','Défenseur central','Milieu défensif']}
 ];
+
+const PRO_LEAGUES = {
+  'Ligue 1': {
+    country:'France', prestige:90,
+    clubs:['Paris SG','Olympique de Marseille','AS Monaco','Lille OSC','Olympique Lyonnais','Toulouse FC','Montpellier HSC','Rennes','Nice','Lens']
+  },
+  'Ligue 2': {
+    country:'France', prestige:68,
+    clubs:['Rodez AF','Pau FC','Guingamp','Grenoble','Amiens','Caen','Bastia','Laval','Dunkerque','Clermont']
+  },
+  'Premier League': {
+    country:'Angleterre', prestige:96,
+    clubs:['Manchester City','Liverpool','Arsenal','Chelsea','Manchester United','Tottenham','Newcastle','Aston Villa','Everton','West Ham']
+  },
+  'Championship': {
+    country:'Angleterre', prestige:72,
+    clubs:['Leeds','Burnley','Sunderland','Middlesbrough','Norwich','Watford','Blackburn','Coventry','Hull City','Bristol City']
+  },
+  'Liga': {
+    country:'Espagne', prestige:94,
+    clubs:['Real Madrid','FC Barcelona','Atlético Madrid','Villarreal','Real Sociedad','Betis','Séville','Valence','Bilbao','Gérone']
+  },
+  'Liga 2': {
+    country:'Espagne', prestige:70,
+    clubs:['Espanyol','Eibar','Levante','Zaragoza','Sporting Gijón','Oviedo','Elche','Tenerife','Racing Santander','Albacete']
+  },
+  'Serie A': {
+    country:'Italie', prestige:91,
+    clubs:['Inter Milan','AC Milan','Juventus','Naples','Roma','Lazio','Atalanta','Fiorentina','Torino','Bologne']
+  },
+  'Serie B': {
+    country:'Italie', prestige:67,
+    clubs:['Parme','Sampdoria','Palerme','Bari','Pise','Cremonese','Modène','Catanzaro','Cosenza','Reggiana']
+  },
+  'Bundesliga': {
+    country:'Allemagne', prestige:90,
+    clubs:['Bayern Munich','Borussia Dortmund','Leverkusen','RB Leipzig','Francfort','Stuttgart','Wolfsburg','Fribourg','Hoffenheim','Brême']
+  },
+  'Bundesliga 2': {
+    country:'Allemagne', prestige:66,
+    clubs:['Hambourg','Schalke 04','Hertha Berlin','Hanovre','Nuremberg','Karlsruhe','Düsseldorf','Paderborn','Kaiserslautern','Magdebourg']
+  },
+  'Liga Portugal': {
+    country:'Portugal', prestige:82,
+    clubs:['Benfica','FC Porto','Sporting CP','Braga','Vitória Guimarães','Boavista','Famalicão','Arouca','Estoril','Rio Ave']
+  },
+  'Liga Portugal 2': {
+    country:'Portugal', prestige:61,
+    clubs:['Marítimo','Nacional','Académico Viseu','Leixões','Penafiel','Tondela','Feirense','Mafra','Oliveirense','Torreense']
+  }
+};
+
+const PRESS_EVENTS = [
+  {
+    title:'Conférence de presse après une victoire',
+    text:'Un journaliste te demande si tu te considères déjà comme indispensable.',
+    choices:[
+      ['Le collectif passe avant moi',{reputation:3,locker:3,coach:2}],
+      ['Oui, je suis en grande forme',{reputation:4,locker:-1,mental:2}],
+      ['Je préfère parler sur le terrain',{mental:2,reputation:1}],
+      ['C’est au coach de répondre',{coach:1,reputation:0}]
+    ]
+  },
+  {
+    title:'Questions après une défaite',
+    text:'La presse insiste sur les choix tactiques du coach.',
+    choices:[
+      ['Je protège le coach',{coach:4,reputation:1}],
+      ['Nous n’avons pas respecté les consignes',{mental:2,locker:-1}],
+      ['Le système ne me convient pas',{coach:-5,reputation:2}],
+      ['Je refuse la polémique',{mental:2,reputation:1}]
+    ]
+  },
+  {
+    title:'Rumeur de transfert',
+    text:'Un journaliste affirme que tu veux quitter le club.',
+    choices:[
+      ['Je démens fermement',{coach:3,reputation:0}],
+      ['Je laisse la porte ouverte',{reputation:3,coach:-2}],
+      ['Je confirme que je réfléchis',{reputation:4,coach:-5}],
+      ['Je renvoie vers mon agent',{agentBoost:true,reputation:1}]
+    ]
+  },
+  {
+    title:'Retour après blessure',
+    text:'La presse te demande si tu es prêt à retrouver ton meilleur niveau.',
+    choices:[
+      ['Je suis prêt à tout donner',{mental:3,reputation:2}],
+      ['Il me faudra encore du temps',{form:2,mental:1}],
+      ['Je veux reprendre progressivement',{coach:2,form:3}],
+      ['Je vise déjà une place de titulaire',{mental:2,coach:-1,reputation:2}]
+    ]
+  }
+];
+
+const EUROPE_COMPETITIONS = [
+  {name:'Ligue des Champions',minPrestige:82},
+  {name:'Ligue Europa',minPrestige:70},
+  {name:'Ligue Conférence',minPrestige:58}
+];
+
+const NATIONAL_COMPETITIONS = {
+  Europe:['Ligue des Nations','Euro','Coupe du Monde'],
+  Afrique:['CAN','Coupe du Monde'],
+  Amérique:['Copa América','Coupe du Monde']
+};
+
 
 let state = null;
 
@@ -251,6 +358,19 @@ function normalizeState(data){
   p.regionalDecisionPending=Boolean(p.regionalDecisionPending);
   p.licenseRenewed=Boolean(p.licenseRenewed);
   p.agent=p.agent||{id:'family',name:'La famille',level:0,commission:0,network:'Clubs locaux'};
+  p.pressHistory=Array.isArray(p.pressHistory)?p.pressHistory:[];
+  p.proAwards=Array.isArray(p.proAwards)?p.proAwards:[];
+  p.proSeasonStats=p.proSeasonStats||{matches:0,goals:0,assists:0,rating:0};
+  p.proLeague=p.proLeague||'';
+  p.clubPrestige=Number(p.clubPrestige)||0;
+  p.europeanMatches=Number(p.europeanMatches)||0;
+  p.europeanGoals=Number(p.europeanGoals)||0;
+  p.europeanAssists=Number(p.europeanAssists)||0;
+  p.pressReputation=Number(p.pressReputation)||0;
+  p.goldenBallWins=Number(p.goldenBallWins)||0;
+  p.longInjury=Boolean(p.longInjury);
+  p.rehabWeeks=Number(p.rehabWeeks)||0;
+  p.careerEnded=Boolean(p.careerEnded);
 
   s.round = Math.max(1, Number(s.round) || 1);
   s.phase = [
@@ -554,6 +674,10 @@ function currentDerby(){
 
 function ageEventPool(){
   const a=state.player.age;
+
+  if(state.player.pro && a>=18 && Math.random()<0.48){
+    return [pressConference()];
+  }
   if(a<=14) return [
     {
       title:'Contrôle demain',
@@ -999,6 +1123,7 @@ function playMatch(){
   }
 
   maybeInjury('match');
+  maybeLongInjury();
 
   state.season.lastResult={
     home:m.home,away:m.away,h,a,absent:false,starter,note,g,as,saves,pen,card,
@@ -1186,6 +1311,268 @@ function decideCareerPath(){
 function createContract(){const years=pick([2,3]),monthly=rand(1800,8500),bonus=rand(3000,25000);state.player.balance+=bonus;state.player.totalIncome+=bonus;return{club:state.player.club,years,remaining:years,monthly,signingBonus:bonus,role:pick(['Rotation','Titulaire potentiel','Titulaire','Jeune à développer'])}}
 function generateOffers(){const p=state.player,count=rand(0,4),offers=[];for(let i=0;i<count;i++){const level=pick(PRO_LEVELS);offers.push({club:pick(level.clubs),years:pick([2,3]),monthly:rand(2200,16000),signingBonus:rand(5000,50000),role:pick(['Rotation','Titulaire potentiel','Titulaire']),loan:Math.random()<.25,purchaseOption:Math.random()<.5})}p.offers=offers;return offers}
 
+
+function assignProLeague(){
+  const p=state.player;
+  if(!p.pro)return;
+
+  if(p.proLeague && PRO_LEAGUES[p.proLeague])return;
+
+  let candidates=Object.entries(PRO_LEAGUES)
+    .filter(([name,data])=>data.prestige<=Math.max(68,p.reputation+18));
+
+  if(!candidates.length)candidates=[['Ligue 2',PRO_LEAGUES['Ligue 2']]];
+
+  const [league,data]=pick(candidates);
+  p.proLeague=league;
+  p.clubPrestige=data.prestige;
+
+  if(!data.clubs.includes(p.club)){
+    p.club=pick(data.clubs);
+    if(p.contract)p.contract.club=p.club;
+  }
+
+  log('Championnat professionnel',`Tu évolues en ${league} avec ${p.club}.`);
+}
+
+function makeProfessionalLeague(){
+  const p=state.player;
+  assignProLeague();
+  const data=PRO_LEAGUES[p.proLeague]||PRO_LEAGUES['Ligue 2'];
+  const clubs=[p.club,...data.clubs.filter(c=>c!==p.club)].slice(0,10);
+  return {level:p.proLeague,clubs,table:clubs.map(freshTeam),schedule:schedule(clubs)};
+}
+
+function pressConference(){
+  const p=state.player;
+  const event=pick(PRESS_EVENTS);
+  return event;
+}
+
+function handlePressChoice(event,index){
+  const p=state.player;
+  const choice=event.choices[index];
+  apply(choice[1]);
+  p.pressReputation=clamp(p.pressReputation+(choice[1].reputation||0));
+  if(choice[1].agentBoost && p.agent.level<3)p.agent.level=Math.min(3,p.agent.level+1);
+  p.pressHistory.unshift({
+    age:p.age,title:event.title,choice:choice[0]
+  });
+  p.pressHistory=p.pressHistory.slice(0,30);
+  log('Presse',`${event.title} — ${choice[0]}`);
+}
+
+function maybeLongInjury(){
+  const p=state.player;
+  if(!p.pro || p.longInjury || p.injuryWeeks>0)return false;
+
+  let risk=.004;
+  if(p.fatigue>75)risk+=.008;
+  if(p.age>=32)risk+=.004;
+
+  if(Math.random()>=risk)return false;
+
+  const injuries=[
+    {name:'rupture des ligaments croisés',weeks:rand(18,30)},
+    {name:'fracture de la cheville',weeks:rand(12,22)},
+    {name:'rupture du tendon d’Achille',weeks:rand(22,34)},
+    {name:'grave lésion musculaire',weeks:rand(10,18)}
+  ];
+  const injury=pick(injuries);
+  p.injury=injury.name;
+  p.injuryWeeks=injury.weeks;
+  p.longInjury=true;
+  p.rehabWeeks=Math.ceil(injury.weeks*.35);
+  p.returnPhase='Soins';
+  p.form=clamp(p.form-25);
+  p.morale=clamp(p.morale-12);
+  log('Blessure longue',`${injury.name} — indisponible environ ${injury.weeks} semaines.`);
+  return true;
+}
+
+function rehabilitationStep(){
+  const p=state.player;
+  if(!p.longInjury)return '';
+
+  if(p.injuryWeeks>p.rehabWeeks){
+    p.returnPhase='Soins et kinésithérapie';
+    p.injuryWeeks=Math.max(0,p.injuryWeeks-3);
+    p.fatigue=clamp(p.fatigue-12);
+    return 'Soins et kinésithérapie : la blessure évolue favorablement.';
+  }
+
+  if(p.injuryWeeks>4){
+    p.returnPhase='Reprise individuelle';
+    p.injuryWeeks=Math.max(0,p.injuryWeeks-2);
+    p.form=clamp(p.form+4);
+    p.physical=clamp(p.physical+1);
+    return 'Reprise individuelle : course et ballon sans contact.';
+  }
+
+  if(p.injuryWeeks>0){
+    p.returnPhase='Reprise avec le groupe';
+    p.injuryWeeks=Math.max(0,p.injuryWeeks-1);
+    p.form=clamp(p.form+6);
+    return 'Reprise avec le groupe : temps de jeu encore limité.';
+  }
+
+  p.longInjury=false;
+  p.injury='';
+  p.returnPhase='Apte';
+  p.form=clamp(p.form+8);
+  p.coach=clamp(p.coach+2);
+  return 'Tu es officiellement apte à rejouer.';
+}
+
+function chooseEuropeCompetition(){
+  const p=state.player;
+  if(!p.pro)return '';
+
+  const leagueData=PRO_LEAGUES[p.proLeague];
+  if(!leagueData)return '';
+
+  const place=sortedTable().findIndex(t=>t.name===p.club)+1;
+  let comp='';
+
+  if(place<=2 && leagueData.prestige>=80)comp='Ligue des Champions';
+  else if(place<=4 && leagueData.prestige>=68)comp='Ligue Europa';
+  else if(place<=6 && leagueData.prestige>=58)comp='Ligue Conférence';
+
+  p.europeCompetition=comp;
+  return comp;
+}
+
+function playEuropeanCampaign(){
+  const p=state.player;
+  const comp=chooseEuropeCompetition();
+  if(!comp)return '';
+
+  const base=
+    (p.tech+p.speed+p.physical+p.mental)/4+
+    p.form*.18+p.reputation*.22+p.clubPrestige*.18+
+    Math.random()*28;
+
+  let result;
+  if(base>=92)result='Victoire finale';
+  else if(base>=84)result='Demi-finale';
+  else if(base>=76)result='Quart de finale';
+  else if(base>=67)result='Huitième de finale';
+  else result='Élimination en phase de groupes ou de ligue';
+
+  const matches=result==='Victoire finale'?13:result==='Demi-finale'?11:result==='Quart de finale'?9:result==='Huitième de finale'?7:6;
+  p.europeanMatches+=matches;
+
+  if(role()==='ATT'){
+    p.europeanGoals+=rand(1,Math.max(2,Math.floor(matches*.65)));
+    p.europeanAssists+=rand(0,Math.max(1,Math.floor(matches*.35)));
+  }else if(role()==='MID'){
+    p.europeanGoals+=rand(0,Math.max(1,Math.floor(matches*.3)));
+    p.europeanAssists+=rand(1,Math.max(2,Math.floor(matches*.55)));
+  }else if(role()==='DEF'){
+    p.europeanGoals+=rand(0,2);
+    p.europeanAssists+=rand(0,2);
+  }
+
+  if(result==='Victoire finale'){
+    p.titles.push(comp);
+    p.reputation=clamp(p.reputation+14);
+  }else if(result==='Demi-finale')p.reputation=clamp(p.reputation+8);
+  else if(result==='Quart de finale')p.reputation=clamp(p.reputation+5);
+
+  return `${comp} : ${result}.`;
+}
+
+function nationalTeamPath(){
+  const p=state.player;
+  if(!p.pro || p.age<18)return '';
+
+  const score=p.reputation*.55+rating()*4+p.clubPrestige*.18+Math.random()*20;
+
+  if(score<65){
+    p.nationalStatus='Non sélectionné';
+    return '';
+  }
+
+  if(score<75)p.nationalStatus='Pré-sélection';
+  else if(score<86)p.nationalStatus='International rotation';
+  else p.nationalStatus='Cadre de la sélection';
+
+  if(p.internationalTeam==='Aucune'){
+    const choices=[p.nationality];
+    if(p.secondNationality)choices.push(p.secondNationality);
+    p.internationalTeam=pick(choices);
+  }
+
+  p.internationalCaps+=rand(2,8);
+  if(role()==='ATT')p.internationalGoals+=rand(0,4);
+  else if(role()==='MID')p.internationalGoals+=rand(0,2);
+
+  const comp=pick(['Ligue des Nations','Euro','Coupe du Monde']);
+  p.nationalCompetition=comp;
+
+  const strength=NATION_STRENGTH[p.internationalTeam]||72;
+  const chance=(strength+p.reputation+rating()*5)/3;
+
+  let result;
+  if(chance>=89 && Math.random()<.4)result='Victoire finale';
+  else if(chance>=82)result='Demi-finale ou finale';
+  else if(chance>=74)result='Quart de finale';
+  else result='Élimination avant les quarts';
+
+  if(result==='Victoire finale'&&!p.titles.includes(comp))p.titles.push(comp);
+
+  return `${comp} avec ${p.internationalTeam} : ${result}.`;
+}
+
+function calculateGoldenBall(){
+  const p=state.player;
+  if(!p.pro || p.clubPrestige<82){
+    p.goldenBallRank=null;
+    return '';
+  }
+
+  const eliteScore=
+    p.reputation*.35+
+    rating()*5+
+    p.goals*.7+
+    p.assists*.45+
+    p.europeanGoals*.9+
+    p.internationalGoals*.8+
+    (p.titles.includes('Ligue des Champions')?14:0)+
+    (p.titles.includes('Coupe du Monde')?16:0)+
+    Math.random()*18;
+
+  let rank;
+  if(eliteScore>=112)rank=1;
+  else if(eliteScore>=100)rank=rand(2,3);
+  else if(eliteScore>=88)rank=rand(4,10);
+  else if(eliteScore>=76)rank=rand(11,30);
+  else rank=null;
+
+  p.goldenBallRank=rank;
+
+  if(rank===1){
+    p.goldenBallWins++;
+    const award=`🏆 Ballon d’Or ${p.goldenBallWins}`;
+    if(!p.awards.includes(award))p.awards.push(award);
+    return 'Tu remportes le Ballon d’Or !';
+  }
+
+  return rank?`Classement Ballon d’Or : ${rank}e.`:'';
+}
+
+function onePercentCareerEndingInjury(){
+  const p=state.player;
+  if(!p.pro || p.age<33 || p.careerEnded)return '';
+
+  if(Math.random()>=.01)return '';
+
+  p.careerEnded=true;
+  p.careerEndReason='Une grave blessure met brutalement fin à ta carrière.';
+  p.injury='blessure mettant fin à la carrière';
+  log('Fin de carrière',p.careerEndReason);
+  return p.careerEndReason;
+}
 function availableAgents(){
   const p=state.player;
   return AGENTS.filter(a =>
@@ -1411,6 +1798,18 @@ function endSeason(){
   const cdf=coupeDeFrance();
   if(cdf){extras.push(cdf);log('Coupe de France',cdf)}
 
+  const careerEnd=onePercentCareerEndingInjury();
+  if(careerEnd)extras.push(careerEnd);
+
+  const euroResult=playEuropeanCampaign();
+  if(euroResult){extras.push(euroResult);log('Europe',euroResult)}
+
+  const nationalResult=nationalTeamPath();
+  if(nationalResult){extras.push(nationalResult);log('Sélection',nationalResult)}
+
+  const goldenResult=calculateGoldenBall();
+  if(goldenResult){extras.push(goldenResult);log('Ballon d’Or',goldenResult)}
+
   const loanResult=processLoanEnd();if(loanResult){extras.push(loanResult);log('Prêt',loanResult)}
 
   const awards=awardSeason();if(awards.length)extras.push('Récompenses : '+awards.join(', '));const pathDecision=decideCareerPath();if(pathDecision)extras.push(pathDecision);if(p.pro&&p.contract){p.contract.remaining--;if(p.contract.remaining<=1){const offers=generateOffers();extras.push(offers.length?`${offers.length} proposition(s) reçue(s).`:'Aucune proposition reçue.')}}if(p.age>=18&&p.amateur&&!p.licenseRenewed)p.regionalDecisionPending=true;
@@ -1521,6 +1920,21 @@ function renderPerformance(r){
 function renderWeek(){
   const box=$('tab-week'),p=state.player,s=state.season;
 
+  if(p.careerEnded){
+    box.innerHTML=`<div class="card">
+      <h2>Fin de carrière</h2>
+      <div class="message">${p.careerEndReason}</div>
+      <p>Matchs : ${p.matches}</p>
+      <p>Buts : ${p.goals}</p>
+      <p>Passes : ${p.assists}</p>
+      <p>Sélections : ${p.internationalCaps}</p>
+      <p>Ballons d’Or : ${p.goldenBallWins}</p>
+      <h3>Palmarès</h3>
+      ${p.titles.map(t=>`<div class="trophy">${t}</div>`).join('')}
+    </div>`;
+    return;
+  }
+
   if(s.round>18){
     endSeason();
     box.innerHTML=`
@@ -1552,11 +1966,21 @@ function renderWeek(){
   }
 
   if(p.injuryWeeks>0&&s.phase!=='result'){
-    box.innerHTML=`<div class="card">
-      <h2>🚑 Blessure</h2>
-      <p>${p.injury} : encore ${p.injuryWeeks} journée(s).</p>
-      <button data-act="injuredAbsent">Voir le match joué sans toi</button>
-    </div>`;
+    if(p.longInjury){
+      box.innerHTML=`<div class="card pro-card">
+        <h2>🚑 Blessure longue</h2>
+        <p><strong>${p.injury}</strong></p>
+        <p>Phase : ${p.returnPhase}</p>
+        <p>Estimation restante : ${p.injuryWeeks} semaine(s).</p>
+        <button data-act="rehab">Poursuivre la rééducation</button>
+      </div>`;
+    }else{
+      box.innerHTML=`<div class="card">
+        <h2>🚑 Blessure</h2>
+        <p>${p.injury} : encore ${p.injuryWeeks} journée(s).</p>
+        <button data-act="injuredAbsent">Voir le match joué sans toi</button>
+      </div>`;
+    }
     return;
   }
 
@@ -1712,6 +2136,7 @@ function renderTabs(){
     <p>Matchs internationaux : <strong>${p.internationalCaps}</strong></p>
     <p>Pôle Castelmaurou : <strong>${p.pole?'Retenu':p.poleAttempted?'Non retenu':'À venir'}</strong></p>
     <p>Centre de formation : <strong>${p.academy}</strong></p>
+    ${p.pro?`<p>Championnat professionnel : <strong>${p.proLeague}</strong></p><p>Statut international : <strong>${p.nationalStatus}</strong></p>`:''}
     <p>Niveau actuel : <strong>${state.league.level}</strong></p>
     ${state.league.level==='Seniors régionaux'?`<p>Statut : <strong>Football amateur</strong></p><p>Popularité locale : <strong>${Math.round((p.reputation+p.locker+p.president)/3)}/100</strong></p>`:''}
     <p>Tournois : ${p.tournaments.join(', ')||'Aucun'}</p>
@@ -1772,6 +2197,36 @@ function renderTabs(){
     ${p.transferHistory.length?p.transferHistory.map(t=>`<div class="journal">${t.age} ans — ${t.type} : ${t.from} → ${t.to}</div>`).join(''):'<p>Aucun mouvement.</p>'}
   </div>`;
 
+
+  $('tab-pro').innerHTML=`<div class="card pro-card">
+    <h2>🌟 Football professionnel</h2>
+    ${p.pro?`
+      <p>Championnat : <strong>${p.proLeague||'À déterminer'}</strong></p>
+      <p>Club : <strong>${p.club}</strong></p>
+      <p>Prestige du club : <strong>${p.clubPrestige}/100</strong></p>
+      <p>Statut en sélection : <strong>${p.nationalStatus}</strong></p>
+      <p>Sélection : <strong>${p.internationalTeam}</strong></p>
+      <p>Compétition européenne : <strong>${p.europeCompetition||'Aucune'}</strong></p>
+      <p>Matchs européens : <strong>${p.europeanMatches}</strong></p>
+      <p>Buts européens : <strong>${p.europeanGoals}</strong></p>
+      <p>Passes européennes : <strong>${p.europeanAssists}</strong></p>
+      <p>Réputation médiatique : <strong>${p.pressReputation}/100</strong></p>
+      <p>Classement Ballon d’Or : <strong>${p.goldenBallRank?p.goldenBallRank+'e':'Non classé'}</strong></p>
+      <p>Ballons d’Or remportés : <strong>${p.goldenBallWins}</strong></p>
+
+      ${p.longInjury?`<div class="message warning">
+        Blessure longue : ${p.injury}<br>
+        Phase : ${p.returnPhase}<br>
+        ${p.injuryWeeks} semaine(s) restantes.
+      </div>`:''}
+
+      <h3>Historique presse</h3>
+      ${p.pressHistory.length
+        ?p.pressHistory.map(x=>`<div class="journal">${x.age} ans — ${x.title}<br><span class="muted">${x.choice}</span></div>`).join('')
+        :'<p>Aucune conférence marquante.</p>'}
+    `:'<p>Cette rubrique s’activera lorsque tu deviendras professionnel.</p>'}
+  </div>`;
+
 }
 
 function render(){
@@ -1826,7 +2281,7 @@ $('deleteBtn').onclick=()=>{
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  ['week','player','standing','journal','future','honours','money','market'].forEach(
+  ['week','player','standing','journal','future','honours','money','market','pro'].forEach(
     x=>$('tab-'+x).classList.toggle('hidden',x!==b.dataset.tab)
   );
 });
@@ -1885,6 +2340,7 @@ document.addEventListener('click',e=>{
     const c=s.preMatch.choices[+b.dataset.i];
     apply(c[1]);
     if(c[1].risk&&Math.random()<c[1].risk)maybeInjury('match');
+  maybeLongInjury();
     log(s.preMatch.title,`Choix : ${c[0]}`);
     s.phase='action';save();render();
   }
@@ -1954,6 +2410,12 @@ document.addEventListener('click',e=>{
   }
 
   else if(a==='regionalClub'){p.club=b.dataset.club;p.national=false;s.regionalClubChoice=false;log('Nouveau club régional',`Tu rejoins ${p.club}.`);save();render()}
+  else if(a==='rehab'){
+    const message=rehabilitationStep();
+    log('Rééducation',message);
+    save();render();
+  }
+
   else if(a==='agent'){chooseAgent(b.dataset.id);save();render()}
   else if(a==='offers'){generateMarketOffers();save();render()}
   else if(a==='acceptOffer'){acceptMarketOffer(b.dataset.id);save();render()}
