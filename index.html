@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V3.3 — FOOTBALL PROFESSIONNEL</title>
+<title>TCROMA ACADEMY V3.4 — IMMERSION</title>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#06140d;--card:#10291b;--card2:#183b27;--line:#2b5a3c;--txt:#f5fbf7;--muted:#b7cbbc;--gold:#f4cb47;--red:#8c3434;--green:#2bb768;--blue:#3674c8}
@@ -38,9 +38,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V3.3 — FOOTBALL PROFESSIONNEL</h1>
+    <h1>⚽ TCROMA ACADEMY V3.4 — IMMERSION</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
-    <p>De 13 ans aux seniors : carrière professionnelle, Europe, sélection et grandes récompenses.</p><p class="muted">Version 3.3 — Football professionnel</p>
+    <p>De 13 ans aux seniors : vestiaire, déplacements, soins, staff, conflits et leadership.</p><p class="muted">Version 3.4 — Immersion</p>
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
   </div>
@@ -123,14 +123,14 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
     <button class="tab" data-tab="player">Joueur</button>
     <button class="tab" data-tab="standing">Classement</button>
     <button class="tab" data-tab="journal">Journal</button>
-    <button class="tab" data-tab="future">Avenir</button><button class="tab" data-tab="honours">Palmarès</button><button class="tab" data-tab="money">Finances</button><button class="tab" data-tab="market">Mercato</button><button class="tab" data-tab="pro">Pro</button>
+    <button class="tab" data-tab="future">Avenir</button><button class="tab" data-tab="honours">Palmarès</button><button class="tab" data-tab="money">Finances</button><button class="tab" data-tab="market">Mercato</button><button class="tab" data-tab="pro">Pro</button><button class="tab" data-tab="immersion">Immersion</button>
   </nav>
 
   <section id="tab-week"></section>
   <section id="tab-player" class="hidden"></section>
   <section id="tab-standing" class="hidden"></section>
   <section id="tab-journal" class="hidden"></section>
-  <section id="tab-future" class="hidden"></section><section id="tab-honours" class="hidden"></section><section id="tab-money" class="hidden"></section><section id="tab-market" class="hidden"></section><section id="tab-pro" class="hidden"></section>
+  <section id="tab-future" class="hidden"></section><section id="tab-honours" class="hidden"></section><section id="tab-money" class="hidden"></section><section id="tab-market" class="hidden"></section><section id="tab-pro" class="hidden"></section><section id="tab-immersion" class="hidden"></section>
 
   <div class="card">
     <button id="saveBtn" class="secondary">Sauvegarder</button>
@@ -144,7 +144,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV33';
+const SAVE_KEY = 'tcromaAcademyV34';
 
 const REGIONAL = [
   'EFCV Verfeil','FC Girou',"L'Union Saint-Jean",'FC Lauragais',
@@ -297,6 +297,197 @@ const NATIONAL_COMPETITIONS = {
   Amérique:['Copa América','Coupe du Monde']
 };
 
+const COACH_PROFILES = [
+  {
+    name:'Florent Véauté',style:'Autoritaire',
+    preference:'Physique et discipline',patience:38,
+    description:'Il exige intensité, ponctualité et respect des consignes.'
+  },
+  {
+    name:'Julien Marty',style:'Formateur',
+    preference:'Technique et progression',patience:72,
+    description:'Il donne du temps aux jeunes et explique ses décisions.'
+  },
+  {
+    name:'Romain Delmas',style:'Tacticien',
+    preference:'Mental et intelligence de jeu',patience:55,
+    description:'Il change souvent de système et attend une grande discipline tactique.'
+  },
+  {
+    name:'Sébastien Costa',style:'Proche du groupe',
+    preference:'Vestiaire et confiance',patience:66,
+    description:'Il protège les joueurs mais supporte mal les trahisons.'
+  },
+  {
+    name:'Marco Silva',style:'International',
+    preference:'Vitesse et créativité',patience:48,
+    description:'Il favorise les joueurs audacieux et les profils offensifs.'
+  }
+];
+
+const STAFF_MEMBERS = [
+  {role:'Kiné',name:'Nicolas Fabre',speciality:'Récupération et rééducation'},
+  {role:'Préparateur physique',name:'Éric Vidal',speciality:'Vitesse, endurance et prévention'},
+  {role:'Médecin',name:'Docteur Martin',speciality:'Diagnostic et suivi médical'},
+  {role:'Intendant',name:'Patrick Roux',speciality:'Matériel, bus et hôtel'}
+];
+
+const LOCKER_EVENTS = [
+  {
+    title:'Deux coéquipiers se disputent',
+    text:'La tension monte après une opposition à l’entraînement.',
+    choices:[
+      ['Je les sépare calmement',{locker:5,mental:2,leadership:4}],
+      ['Je prends parti pour mon ami',{locker:-2,friendship:3,rivalry:3}],
+      ['Je préviens le capitaine',{locker:2,coach:1}],
+      ['Je laisse le groupe gérer',{locker:-1}]
+    ]
+  },
+  {
+    title:'Un jeune est isolé',
+    text:'Un nouveau joueur mange seul et parle peu au vestiaire.',
+    choices:[
+      ['Je l’invite avec le groupe',{locker:5,leadership:3,morale:2}],
+      ['Je lui donne quelques conseils',{locker:3,mental:1}],
+      ['Je reste avec mes amis',{locker:-1}],
+      ['Je le chambre gentiment',{locker:1,morale:1,rivalry:1}]
+    ]
+  },
+  {
+    title:'Musique dans le vestiaire',
+    text:'Le groupe te demande de choisir la musique avant le match.',
+    choices:[
+      ['Je mets quelque chose qui motive tout le monde',{locker:4,morale:3,leadership:2}],
+      ['Je mets uniquement ma playlist',{locker:-2,morale:2}],
+      ['Je laisse le capitaine choisir',{locker:1,leadership:-1}],
+      ['Je demande le silence pour se concentrer',{mental:2,locker:-1}]
+    ]
+  },
+  {
+    title:'Critique d’un coéquipier',
+    text:'Un joueur affirme que tu ne défends pas assez.',
+    choices:[
+      ['Je discute calmement avec lui',{locker:3,mental:2}],
+      ['Je lui réponds sèchement',{locker:-4,rivalry:4,mental:1}],
+      ['Je demande l’avis du coach',{coach:1,locker:-1}],
+      ['Je prouve le contraire sur le terrain',{mental:3,form:1}]
+    ]
+  }
+];
+
+const TRAVEL_EVENTS = [
+  {
+    title:'Long déplacement en bus',
+    text:'Six heures de route avant un match important.',
+    choices:[
+      ['Je dors pendant le trajet',{fatigue:-8,form:3}],
+      ['Je joue aux cartes avec le groupe',{locker:4,morale:3}],
+      ['Je regarde des vidéos tactiques',{mental:3,coach:2}],
+      ['Je reste sur mon téléphone',{morale:2,form:-1}]
+    ]
+  },
+  {
+    title:'Retard du bus',
+    text:'Le départ est retardé et le groupe commence à s’énerver.',
+    choices:[
+      ['Je détends l’atmosphère',{locker:4,morale:3,leadership:2}],
+      ['Je demande des explications à l’intendant',{president:0,mental:1}],
+      ['Je m’isole avec mes écouteurs',{morale:1,locker:-1}],
+      ['Je rappelle l’objectif du match',{mental:2,leadership:3}]
+    ]
+  },
+  {
+    title:'Arrivée tardive à l’hôtel',
+    text:'Il ne reste que peu de temps avant le coucher.',
+    choices:[
+      ['Je mange léger et je dors vite',{fatigue:-6,form:4}],
+      ['Je reste discuter dans une chambre',{locker:3,fatigue:4}],
+      ['Je fais des étirements avec le kiné',{fatigue:-5,physical:1}],
+      ['Je commande un repas lourd',{morale:3,fatigue:6,form:-3}]
+    ]
+  }
+];
+
+const HOTEL_EVENTS = [
+  {
+    title:'Chambre d’hôtel',
+    text:'Le coach te demande de choisir ton colocataire.',
+    choices:[
+      ['Mon meilleur ami',{locker:3,morale:3,friendship:3}],
+      ['Un jeune que je connais peu',{locker:4,leadership:2}],
+      ['Le capitaine',{mental:2,leadership:2}],
+      ['Je demande une chambre seul',{fatigue:-3,locker:-2}]
+    ]
+  },
+  {
+    title:'Veille de match européen',
+    text:'Des joueurs veulent regarder un match jusqu’à tard.',
+    choices:[
+      ['Je vais dormir',{fatigue:-7,form:4}],
+      ['Je regarde seulement la première période',{morale:2,fatigue:1}],
+      ['Je reste jusqu’à la fin',{locker:2,fatigue:6,form:-2}],
+      ['Je propose une séance vidéo rapide',{mental:3,coach:2}]
+    ]
+  }
+];
+
+const CARE_EVENTS = [
+  {
+    title:'Passage chez le kiné',
+    text:'Le kiné détecte des tensions musculaires.',
+    choices:[
+      ['Massage et récupération complète',{fatigue:-12,form:5}],
+      ['Étirements rapides seulement',{fatigue:-6,form:2}],
+      ['Je refuse, je me sens bien',{fatigue:2,risk:.025}],
+      ['Je demande un programme préventif',{physical:1,fatigue:-8,staffRelation:3}]
+    ]
+  },
+  {
+    title:'Préparateur physique',
+    text:'Le préparateur te propose un travail individuel.',
+    choices:[
+      ['Prévention des blessures',{physical:2,fatigue:2,injuryProtection:4}],
+      ['Travail de vitesse',{speed:2,fatigue:5}],
+      ['Travail d’endurance',{physical:2,form:3,fatigue:4}],
+      ['Récupération active',{fatigue:-9,form:4}]
+    ]
+  },
+  {
+    title:'Contrôle médical',
+    text:'Le médecin te conseille de ralentir quelques jours.',
+    choices:[
+      ['Je suis son avis',{fatigue:-14,form:5,forceBench:true}],
+      ['Je demande un second avis',{mental:1,fatigue:-5}],
+      ['Je veux jouer malgré tout',{mental:2,risk:.04}],
+      ['Je parle au coach d’une reprise progressive',{coach:3,form:3,forceBench:true}]
+    ]
+  }
+];
+
+const CAPTAIN_EVENTS = [
+  {
+    title:'Discours du capitaine',
+    text:'Le capitaine te demande de prendre la parole avant un derby.',
+    choices:[
+      ['Je fais un discours passionné',{locker:5,mental:3,leadership:4}],
+      ['Je reste simple et direct',{locker:3,mental:2,leadership:2}],
+      ['Je refuse, je ne suis pas à l’aise',{mental:-1,leadership:-2}],
+      ['Je laisse parler les anciens',{locker:1,leadership:-1}]
+    ]
+  },
+  {
+    title:'Brassard en ton absence',
+    text:'Le capitaine est blessé et le coach hésite à te confier le brassard.',
+    choices:[
+      ['Je dis que je suis prêt',{mental:3,coach:2,leadership:4}],
+      ['Je recommande un ancien',{locker:3,leadership:1}],
+      ['Je préfère rester concentré sur mon jeu',{mental:1}],
+      ['Je demande aux joueurs de voter',{locker:2,leadership:2}]
+    ]
+  }
+];
+
+
 
 let state = null;
 
@@ -371,6 +562,21 @@ function normalizeState(data){
   p.longInjury=Boolean(p.longInjury);
   p.rehabWeeks=Number(p.rehabWeeks)||0;
   p.careerEnded=Boolean(p.careerEnded);
+  p.coachProfile=p.coachProfile||pick(COACH_PROFILES);
+  p.coachTenure=Number(p.coachTenure)||0;
+  p.coachChanges=Number(p.coachChanges)||0;
+  p.leadership=clamp(Number(p.leadership)||25);
+  p.captain=Boolean(p.captain);
+  p.viceCaptain=Boolean(p.viceCaptain);
+  p.friendship=clamp(Number(p.friendship)||50);
+  p.rivalry=clamp(Number(p.rivalry)||0);
+  p.staffRelation=clamp(Number(p.staffRelation)||50);
+  p.injuryProtection=clamp(Number(p.injuryProtection)||0);
+  p.conflicts=Number(p.conflicts)||0;
+  p.lockerHistory=Array.isArray(p.lockerHistory)?p.lockerHistory:[];
+  p.staffHistory=Array.isArray(p.staffHistory)?p.staffHistory:[];
+  p.travelHistory=Array.isArray(p.travelHistory)?p.travelHistory:[];
+  p.currentStaff=Array.isArray(p.currentStaff)&&p.currentStaff.length?p.currentStaff:[...STAFF_MEMBERS];
 
   s.round = Math.max(1, Number(s.round) || 1);
   s.phase = [
@@ -551,7 +757,8 @@ function apply(effects){
     }
 
     if(['tech','speed','physical','mental','fatigue','form','coach','morale',
-        'reputation','school','parents','locker','president'].includes(k)){
+        'reputation','school','parents','locker','president','leadership',
+        'friendship','rivalry','staffRelation','injuryProtection'].includes(k)){
       state.player[k]=clamp((state.player[k]||0)+v);
     }else{
       state.season[k]=v;
@@ -674,6 +881,10 @@ function currentDerby(){
 
 function ageEventPool(){
   const a=state.player.age;
+
+  if(a>=15 && Math.random()<0.42){
+    return [immersionEventPool()];
+  }
 
   if(state.player.pro && a>=18 && Math.random()<0.48){
     return [pressConference()];
@@ -989,7 +1200,9 @@ function matchAction(){
 
 function maybeInjury(source){
   const p=state.player;
-  let risk=.002+p.fatigue/(source==='match'?3400:4600)+(p.physical<40?.007:0);
+  const staffBonus=staffRecoveryBonus();
+  let risk=.002+p.fatigue/(source==='match'?3400:4600)+(p.physical<40?.007:0)-staffBonus.protection;
+  risk=Math.max(.001,risk);
   if(Math.random()>=risk) return false;
   const b=pick([
     {n:'contracture',w:1},{n:'élongation',w:2},
@@ -1052,7 +1265,9 @@ function playMatch(){
   }
 
   let avg=(p.tech+p.speed+p.physical+p.mental)/4;
+  const compatibility=coachCompatibility();
   let perf=avg+p.form*.22+p.coach*.18-p.fatigue*.28+
+    compatibility+
     (state.season.actionBonus||0)+Math.random()*32;
 
   let starter=perf>=62&&!state.season.forceBench;
@@ -1312,6 +1527,135 @@ function createContract(){const years=pick([2,3]),monthly=rand(1800,8500),bonus=
 function generateOffers(){const p=state.player,count=rand(0,4),offers=[];for(let i=0;i<count;i++){const level=pick(PRO_LEVELS);offers.push({club:pick(level.clubs),years:pick([2,3]),monthly:rand(2200,16000),signingBonus:rand(5000,50000),role:pick(['Rotation','Titulaire potentiel','Titulaire']),loan:Math.random()<.25,purchaseOption:Math.random()<.5})}p.offers=offers;return offers}
 
 
+
+function immersionEventPool(){
+  const p=state.player;
+  const pools=[LOCKER_EVENTS,TRAVEL_EVENTS,CARE_EVENTS];
+
+  if(p.age>=16)pools.push(HOTEL_EVENTS);
+  if(p.leadership>=45 || p.captain || p.viceCaptain)pools.push(CAPTAIN_EVENTS);
+
+  return pick(pick(pools));
+}
+
+function recordImmersionEvent(event,choice){
+  const p=state.player;
+  const item={age:p.age,title:event.title,choice};
+
+  if(LOCKER_EVENTS.includes(event))p.lockerHistory.unshift(item);
+  else if(CARE_EVENTS.includes(event))p.staffHistory.unshift(item);
+  else p.travelHistory.unshift(item);
+
+  p.lockerHistory=p.lockerHistory.slice(0,25);
+  p.staffHistory=p.staffHistory.slice(0,25);
+  p.travelHistory=p.travelHistory.slice(0,25);
+}
+
+function assessCaptaincy(){
+  const p=state.player;
+  const score=p.leadership*.45+p.locker*.25+p.mental*.15+p.coach*.15;
+
+  if(score>=78 && !p.captain){
+    p.captain=true;
+    p.viceCaptain=false;
+    log('Capitanat','Le coach te nomme capitaine de l’équipe.');
+    return 'Tu deviens capitaine.';
+  }
+
+  if(score>=64 && !p.captain && !p.viceCaptain){
+    p.viceCaptain=true;
+    log('Capitanat','Le coach te nomme vice-capitaine.');
+    return 'Tu deviens vice-capitaine.';
+  }
+
+  if((p.captain||p.viceCaptain) && (p.coach<30 || p.locker<35)){
+    const old=p.captain?'capitaine':'vice-capitaine';
+    p.captain=false;
+    p.viceCaptain=false;
+    log('Capitanat',`Tu perds ton rôle de ${old}.`);
+    return `Tu perds ton rôle de ${old}.`;
+  }
+
+  return '';
+}
+
+function maybeChangeCoach(){
+  const p=state.player;
+  p.coachTenure++;
+
+  let chance=.06;
+  const place=sortedTable().findIndex(t=>t.name===p.club)+1;
+  if(place>=8)chance+=.10;
+  if(p.pro)chance+=.03;
+
+  if(Math.random()>=chance)return '';
+
+  const previous=p.coachProfile;
+  const candidates=COACH_PROFILES.filter(c=>!previous||c.name!==previous.name);
+  const next=pick(candidates);
+
+  p.coachProfile=next;
+  p.coachTenure=0;
+  p.coachChanges++;
+  p.coach=50;
+  p.captain=false;
+  p.viceCaptain=false;
+
+  const text=`${previous?previous.name:'L’ancien entraîneur'} quitte le club. ${next.name}, profil ${next.style}, est nommé.`;
+  log('Nouvel entraîneur',text);
+  return text;
+}
+
+function coachCompatibility(){
+  const p=state.player;
+  const c=p.coachProfile;
+  if(!c)return 0;
+
+  let bonus=0;
+  if(c.preference.includes('Physique'))bonus+=(p.physical-50)/10;
+  if(c.preference.includes('Technique'))bonus+=(p.tech-50)/10;
+  if(c.preference.includes('Mental'))bonus+=(p.mental-50)/10;
+  if(c.preference.includes('Vitesse'))bonus+=(p.speed-50)/10;
+  if(c.preference.includes('Vestiaire'))bonus+=(p.locker-50)/10;
+
+  return Math.round(bonus);
+}
+
+function conflictConsequences(){
+  const p=state.player;
+  if(p.rivalry<60 && p.locker>=35)return '';
+
+  p.conflicts++;
+
+  const outcomes=[
+    'Le coach organise une réunion pour calmer le vestiaire.',
+    'Un coéquipier demande ton départ au prochain mercato.',
+    'Le capitaine vous oblige à vous expliquer devant le groupe.',
+    'La presse révèle les tensions dans le vestiaire.'
+  ];
+
+  const text=pick(outcomes);
+  p.coach=clamp(p.coach-rand(1,4));
+  p.morale=clamp(p.morale-rand(1,4));
+  log('Conflit',text);
+  return text;
+}
+
+function staffRecoveryBonus(){
+  const p=state.player;
+  const relation=p.staffRelation||50;
+  const protection=p.injuryProtection||0;
+
+  return {
+    recovery:Math.floor(relation/25),
+    protection:Math.min(.018,protection/5000)
+  };
+}
+
+function hotelBeforeBigGame(){
+  const p=state.player;
+  return p.pro && (p.europeCompetition || p.nationalCompetition) && Math.random()<.40;
+}
 function assignProLeague(){
   const p=state.player;
   if(!p.pro)return;
@@ -1798,6 +2142,15 @@ function endSeason(){
   const cdf=coupeDeFrance();
   if(cdf){extras.push(cdf);log('Coupe de France',cdf)}
 
+  const captainResult=assessCaptaincy();
+  if(captainResult)extras.push(captainResult);
+
+  const conflictResult=conflictConsequences();
+  if(conflictResult)extras.push(conflictResult);
+
+  const coachResult=maybeChangeCoach();
+  if(coachResult)extras.push(coachResult);
+
   const careerEnd=onePercentCareerEndingInjury();
   if(careerEnd)extras.push(careerEnd);
 
@@ -1878,7 +2231,8 @@ function resetWeek(){
   if(p.suspension > 0) p.suspension--;
 
   const naturalRecovery=p.form>=75?7:p.form>=60?5:3;
-  p.fatigue=clamp(p.fatigue-naturalRecovery);
+  const staffBonus=staffRecoveryBonus();
+  p.fatigue=clamp(p.fatigue-naturalRecovery-staffBonus.recovery);
 
   if(s.round === 10 && !s.midReportDone){
     s.midReport = reportHTML('Bilan de mi-saison');
@@ -2024,6 +2378,18 @@ function renderWeek(){
   }
 
   if(s.phase==='prematch'){
+    if(hotelBeforeBigGame() && !s.hotelShown){
+      s.hotelShown=true;
+      s.weekEvent=pick(HOTEL_EVENTS);
+      box.innerHTML=`<div class="card choice">
+        <h2>🏨 ${s.weekEvent.title}</h2>
+        <p>${s.weekEvent.text}</p>
+        ${s.weekEvent.choices.map((c,i)=>`
+          <button data-act="hotelChoice" data-i="${i}">${c[0]}</button>`).join('')}
+      </div>`;
+      return;
+    }
+
     if(state.league.level==='Seniors régionaux'){
       const derby=currentDerby();
       if(derby && !s.derbyShown){
@@ -2114,6 +2480,8 @@ function renderTabs(){
       <p>Note moyenne : ${rating().toFixed(1)}</p>
       <p>Réputation : ${p.reputation}/100</p>
       <p>Profil à 18 ans : <strong>${p.profile}</strong></p>
+      <p>Rôle dans le groupe : <strong>${p.captain?'Capitaine':p.viceCaptain?'Vice-capitaine':'Joueur'}</strong></p>
+      <p>Entraîneur : <strong>${p.coachProfile?.name||'Non défini'}</strong></p>
       ${role()==='GK'
         ?`<p>Arrêts : ${p.saves}</p><p>Clean sheets : ${p.cleanSheets}</p><p>Penalties arrêtés : ${p.pensSaved}</p><p>Buts encaissés : ${p.goalsConceded}</p>`
         :`<p>Buts : ${p.goals}</p><p>Passes : ${p.assists}</p>`}
@@ -2227,6 +2595,60 @@ function renderTabs(){
     `:'<p>Cette rubrique s’activera lorsque tu deviendras professionnel.</p>'}
   </div>`;
 
+
+  const coach=p.coachProfile||COACH_PROFILES[0];
+  $('tab-immersion').innerHTML=`<div class="card">
+    <h2>🎭 Immersion</h2>
+
+    <div class="report-grid">
+      <div class="report-box">
+        <h3>Entraîneur</h3>
+        <p><strong>${coach.name}</strong></p>
+        <p>${coach.style}</p>
+        <p class="muted">${coach.description}</p>
+        <p>Préférence : ${coach.preference}</p>
+        <p>Compatibilité : ${coachCompatibility()>=0?'+':''}${coachCompatibility()}</p>
+        <p>Changements de coach : ${p.coachChanges}</p>
+      </div>
+
+      <div class="report-box ${p.captain?'captain':''}">
+        <h3>Leadership</h3>
+        <p>${p.captain?'🟡 Capitaine':p.viceCaptain?'Vice-capitaine':'Membre du groupe'}</p>
+        ${statLine('Leadership',p.leadership)}
+        ${statLine('Vestiaire',p.locker)}
+      </div>
+
+      <div class="report-box">
+        <h3>Relations</h3>
+        ${statLine('Amitiés',p.friendship)}
+        ${statLine('Rivalités',p.rivalry)}
+        ${statLine('Staff médical',p.staffRelation)}
+        <p>Conflits vécus : ${p.conflicts}</p>
+      </div>
+
+      <div class="report-box">
+        <h3>Staff</h3>
+        ${p.currentStaff.map(x=>`<p><strong>${x.role}</strong> : ${x.name}<br><span class="muted">${x.speciality}</span></p>`).join('')}
+        <p>Protection blessures : ${p.injuryProtection}/100</p>
+      </div>
+    </div>
+
+    <h3>Vie du vestiaire</h3>
+    ${p.lockerHistory.length
+      ?p.lockerHistory.map(x=>`<div class="journal">${x.age} ans — ${x.title}<br><span class="muted">${x.choice}</span></div>`).join('')
+      :'<p>Aucun événement marquant.</p>'}
+
+    <h3>Déplacements et hôtels</h3>
+    ${p.travelHistory.length
+      ?p.travelHistory.map(x=>`<div class="journal">${x.age} ans — ${x.title}<br><span class="muted">${x.choice}</span></div>`).join('')
+      :'<p>Aucun déplacement marquant.</p>'}
+
+    <h3>Soins et préparation</h3>
+    ${p.staffHistory.length
+      ?p.staffHistory.map(x=>`<div class="journal">${x.age} ans — ${x.title}<br><span class="muted">${x.choice}</span></div>`).join('')
+      :'<p>Aucun suivi particulier.</p>'}
+  </div>`;
+
 }
 
 function render(){
@@ -2281,7 +2703,7 @@ $('deleteBtn').onclick=()=>{
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  ['week','player','standing','journal','future','honours','money','market','pro'].forEach(
+  ['week','player','standing','journal','future','honours','money','market','pro','immersion'].forEach(
     x=>$('tab-'+x).classList.toggle('hidden',x!==b.dataset.tab)
   );
 });
@@ -2320,7 +2742,21 @@ document.addEventListener('click',e=>{
 
   else if(a==='lifeChoice'){
     const c=s.weekEvent.choices[+b.dataset.i];
-    apply(c[1]);log(s.weekEvent.title,`Choix : ${c[0]}`);
+    apply(c[1]);
+
+    if(c[1].risk&&Math.random()<c[1].risk)maybeInjury('training');
+
+    if(
+      LOCKER_EVENTS.includes(s.weekEvent) ||
+      TRAVEL_EVENTS.includes(s.weekEvent) ||
+      HOTEL_EVENTS.includes(s.weekEvent) ||
+      CARE_EVENTS.includes(s.weekEvent) ||
+      CAPTAIN_EVENTS.includes(s.weekEvent)
+    ){
+      recordImmersionEvent(s.weekEvent,c[0]);
+    }
+
+    log(s.weekEvent.title,`Choix : ${c[0]}`);
     s.phase=c[1].skipTraining?'prematch':'training';
     save();render();
   }
@@ -2410,6 +2846,16 @@ document.addEventListener('click',e=>{
   }
 
   else if(a==='regionalClub'){p.club=b.dataset.club;p.national=false;s.regionalClubChoice=false;log('Nouveau club régional',`Tu rejoins ${p.club}.`);save();render()}
+  else if(a==='hotelChoice'){
+    const c=s.weekEvent.choices[+b.dataset.i];
+    apply(c[1]);
+    recordImmersionEvent(s.weekEvent,c[0]);
+    log(s.weekEvent.title,`Choix : ${c[0]}`);
+    s.hotelShown=true;
+    s.weekEvent=null;
+    save();render();
+  }
+
   else if(a==='rehab'){
     const message=rehabilitationStep();
     log('Rééducation',message);
