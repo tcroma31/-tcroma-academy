@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.2.2 — ÉTRANGER & FIN DE CARRIÈRE</title>
+<title>TCROMA ACADEMY V4.2.3 — TRANSFERTS MI-SAISON</title>
 
 <style>
 *{box-sizing:border-box}
@@ -39,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.2.2 — ÉTRANGER & FIN DE CARRIÈRE</h1>
+    <h1>⚽ TCROMA ACADEMY V4.2.3 — TRANSFERTS MI-SAISON</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
     <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
-    <p class="muted">Version 4.2.2 — Étranger & fin de carrière</p>
+    <p class="muted">Version 4.2.3 — Transferts mi-saison</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -161,8 +161,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV422';
+const SAVE_KEY = 'tcromaAcademyV423';
 const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV422',
   'tcromaAcademyV421',
   'tcromaAcademyV420',
   'tcromaAcademyV412D',
@@ -397,7 +398,13 @@ function acceptAcademyOffer(id){
   if(!o)return;
 
   const old=p.club;
+  const oldRound=state.season.round||1;
+  const oldTotal=state.league?.schedule?.length||1;
+  const midSeason=!state.season.seasonProcessed && oldRound>1 &&
+    (o.moment==='mi' || o.moment==='retourFrance');
+
   changeClubCareer(o.club,'Entrée en centre de formation');
+
   p.academy=`${o.club} - Centre de formation`;
   p.academySinceAge=p.age;
   p.national=true;
@@ -419,18 +426,26 @@ function acceptAcademyOffer(id){
     p.homeSickness=0;
   }
 
-  state.league=makeAcademyLeague(o.country,o.club);
-  state.season.round=Math.min(state.season.round,state.league.schedule.length);
-  p.seasonStartClub=o.club;
-  p.seasonStartLevel=state.league.level;
+  if(midSeason){
+    const newLeague=makeAcademyLeague(o.country,o.club);
+    const arrivalRound=switchLeagueAtCurrentProgress(newLeague,oldRound,oldTotal);
+
+    p.marketMessage=`Tu rejoins ${o.club} en cours de saison. Le championnat est déjà à la journée ${arrivalRound}.`;
+    log(
+      'Transfert à mi-saison',
+      `${old} → ${o.club}. Arrivée en ${o.country}, journée ${arrivalRound}/${state.league.schedule.length}, classement déjà simulé.`
+    );
+  }else{
+    // Offre de fin de saison : le nouveau championnat commencera normalement
+    // à la J1 lors de la saison suivante.
+    p.marketMessage=`Tu acceptes ${o.club}. Tu rejoindras le club pour la prochaine saison.`;
+    log('Choix du centre',`${old} → ${o.club}. Départ en ${o.country} pour la prochaine saison.`);
+  }
 
   o.status='accepted';
   (p.academyOffers||[]).forEach(x=>{
     if(x.id!==id&&['active','waiting'].includes(x.status))x.status='withdrawn';
   });
-
-  p.marketMessage=`Tu acceptes ${o.club}. Tu évolueras en ${state.league.level} (${o.country}).`;
-  log('Choix du centre',`${old} → ${o.club}. Départ en ${o.country}. Championnat : ${state.league.level}.`);
 }
 
 function waitAcademyOffer(id){
@@ -550,6 +565,48 @@ function makeAcademyLeague(country,club){
   if(clubs.length%2!==0)clubs=clubs.slice(0,clubs.length-1);
   return {level:data.level,country,clubs,table:clubs.map(freshTeam),schedule:schedule(clubs)};
 }
+
+function equivalentTransferRound(oldRound,oldTotal,newTotal){
+  oldRound=Math.max(1,Number(oldRound)||1);
+  oldTotal=Math.max(1,Number(oldTotal)||1);
+  newTotal=Math.max(1,Number(newTotal)||1);
+
+  // Même avancement de saison : ex. 9/18 -> environ 9/18,
+  // 7/14 -> environ 7/14, etc.
+  const progress=Math.max(0,Math.min(1,(oldRound-1)/oldTotal));
+  return Math.max(1,Math.min(newTotal,Math.floor(progress*newTotal)+1));
+}
+
+function seedLeagueBeforeArrival(league,targetRound){
+  const original=state.league;
+  state.league=league;
+
+  // Simule toutes les journées déjà disputées avant l'arrivée du joueur.
+  for(let r=1;r<targetRound;r++){
+    const day=league.schedule[r-1]||[];
+    for(const g of day){
+      record(g.home,g.away,rand(0,3),rand(0,3));
+    }
+  }
+
+  state.league=original;
+  return league;
+}
+
+function switchLeagueAtCurrentProgress(newLeague,oldRound,oldTotal){
+  const targetRound=equivalentTransferRound(
+    oldRound,
+    oldTotal,
+    newLeague.schedule?.length||1
+  );
+
+  seedLeagueBeforeArrival(newLeague,targetRound);
+  state.league=newLeague;
+  state.season.round=targetRound;
+
+  return targetRound;
+}
+
 
 function coachForClub(club,excludeName=''){
   if(club==='EFCV Verfeil'){
@@ -3056,7 +3113,12 @@ function generateMarketOffers(){
 function acceptMarketOffer(id){
   const p=state.player,o=p.offers.find(x=>x.id===id&&x.status==='active');
   if(!o)return;
+
   const old=p.club;
+  const oldRound=state.season.round||1;
+  const oldTotal=state.league?.schedule?.length||1;
+  const midSeason=!state.season.seasonProcessed && oldRound>1;
+
   if(o.loan){
     p.loan={parentClub:old,loanClub:o.club,remaining:1,purchaseOption:o.purchaseOption,monthly:o.monthly};
     changeClubCareer(o.club,'Prêt');
@@ -3064,9 +3126,12 @@ function acceptMarketOffer(id){
   }else{
     changeClubCareer(o.club,'Transfert');
     p.contract={club:o.club,years:o.years,remaining:o.years,monthly:o.monthly,signingBonus:o.signingBonus,role:o.role};
-    p.balance+=o.signingBonus;p.totalIncome+=o.signingBonus;p.freeAgent=false;
+    p.balance+=o.signingBonus;
+    p.totalIncome+=o.signingBonus;
+    p.freeAgent=false;
     p.marketMessage=`Contrat signé à ${o.club} pour ${o.years} ans.`;
   }
+
   if(o.level&&PRO_LEAGUES[o.level]){
     p.proLeague=o.level;
     p.clubPrestige=PRO_LEAGUES[o.level].prestige;
@@ -3076,6 +3141,13 @@ function acceptMarketOffer(id){
   if(p.currentCountry&&p.currentCountry!=='France'){
     p.internationalExperience=clamp((p.internationalExperience||0)+3);
     p.maturity=clamp((p.maturity||25)+1);
+  }
+
+  if(midSeason && p.proLeague && PRO_LEAGUES[p.proLeague]){
+    const newLeague=makeProfessionalLeague();
+    const arrivalRound=switchLeagueAtCurrentProgress(newLeague,oldRound,oldTotal);
+    p.marketMessage+=` Tu arrives alors que le championnat est déjà à la journée ${arrivalRound}.`;
+    log('Transfert à mi-saison',`${old} → ${p.club}, journée ${arrivalRound}/${state.league.schedule.length}.`);
   }
 
   p.offers.forEach(x=>x.status=x.id===id?'accepted':'withdrawn');
@@ -3309,23 +3381,20 @@ function nextSeason(){
     weekEvent:null,trainingEvent:null,preMatch:null,matchAction:null,
     lastResult:null,absenceReason:'',seasonProcessed:false,
     midReportDone:false,endReport:null,midReport:null,preseasonDone:false,
-    forceBench:false,actionBonus:0,actionGoal:0,actionAssist:0,actionOpponentGoal:0,actionSave:0,actionPenaltySaved:0,actionTeamGoal:0,gkBench:false,gkEntryMinute:0,lastActionMessage:'',regionalClubChoice:false
+    forceBench:false,actionBonus:0,actionGoal:0,actionAssist:0,
+    actionOpponentGoal:0,actionSave:0,actionPenaltySaved:0,
+    actionTeamGoal:0,gkBench:false,gkEntryMinute:0,
+    lastActionMessage:'',regionalClubChoice:false
   };
 
-  const stillInAcademy = Boolean(p.academy && p.academy!=='Aucun' && p.age<=18);
-  let level=p.pro
-    ?'Championnat professionnel'
-    :(stillInAcademy
-      ?(YOUTH_LEAGUES_BY_COUNTRY[p.academyCountry||'France']?.level||'National jeunes')
-      :(p.age>=18
-        ?'Seniors régionaux'
-        :(p.national?'National jeunes':'Régional jeunes')));
+  const stillInAcademy=Boolean(p.academy&&p.academy!=='Aucun'&&p.age<=18);
 
   if(isAbroad()){
     p.maturity=clamp((p.maturity||25)+rand(2,4));
     p.internationalExperience=clamp((p.internationalExperience||0)+rand(3,6));
     p.adaptation=clamp((p.adaptation||50)+rand(7,14));
     p.homeSickness=clamp((p.homeSickness||0)-rand(5,12));
+
     const lang=p.academyLanguage;
     if(lang&&lang!=='Français'){
       p.languages=p.languages||{Français:100};
@@ -3336,9 +3405,26 @@ function nextSeason(){
   p.seasonMatches=0;
   p.fatigue=clamp(p.fatigue-30);
   p.form=clamp(p.form+8);
-  state.league=makeLeague(p.club,level,p.department);
+
+  let level;
+
+  if(stillInAcademy){
+    state.league=makeAcademyLeague(p.academyCountry||'France',p.club);
+    level=state.league.level;
+  }else if(p.pro){
+    assignProLeague();
+    state.league=makeProfessionalLeague();
+    level=state.league.level;
+  }else{
+    level=p.age>=18
+      ?'Seniors régionaux'
+      :(p.national?'National jeunes':'Régional jeunes');
+    state.league=makeLeague(p.club,level,p.department);
+  }
+
   p.seasonStartClub=p.club;
   p.seasonStartLevel=level;
+
   state.competitions={
     active:competitionIdsForPlayer(p).map(createCompetition),
     calendar:[],
@@ -3346,7 +3432,8 @@ function nextSeason(){
     records:state.competitions?.records||[]
   };
 
-  save();render();
+  save();
+  render();
 }
 
 function resetWeek(){
