@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.1.2 — LES COMPÉTITIONS</title>
+<title>TCROMA ACADEMY V4.1.2 — COMPÉTITIONS & DÉPARTEMENTS</title>
+
 <style>
 *{box-sizing:border-box}
 :root{--bg:#06140d;--card:#10291b;--card2:#183b27;--line:#2b5a3c;--txt:#f5fbf7;--muted:#b7cbbc;--gold:#f4cb47;--red:#8c3434;--green:#2bb768;--blue:#3674c8}
@@ -38,9 +39,11 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.1.2 — LES COMPÉTITIONS</h1>
+    <h1>⚽ TCROMA ACADEMY V4.1.2 — COMPÉTITIONS & DÉPARTEMENTS</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
-    <p>De 13 ans aux seniors : championnat, coupes, tirages, exploits et finales.</p><p class="muted">Version 4.1.1 — Les Compétitions</p>
+    <p>De 13 ans aux seniors : départements, championnat, coupes, tirages, exploits et finales.</p>
+    <p class="muted">Version 4.1.2 — Compétitions & Départements</p>
+
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
   </div>
@@ -158,8 +161,58 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV412';
-const LEGACY_SAVE_KEYS = ['tcromaAcademyV411','tcromaAcademyV41','tcromaAcademyV34'];
+const SAVE_KEY = 'tcromaAcademyV412D';
+const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV412',
+  'tcromaAcademyV411',
+  'tcromaAcademyV41',
+  'tcromaAcademyV341',
+  'tcromaAcademyV34'
+];
+
+const DEPARTMENT_CLUBS = {
+  'Haute-Garonne':[
+    'EFCV Verfeil','FC Girou','AS Castelmaurou','US Saint-Jean',
+    'FC Flourens','Quint-Fonsegrives FC','FC Lauragais',
+    'Saint-Orens FC','Balma SC B','Castanet B'
+  ],
+  'Tarn':[
+    'FC Lavaur','Albi Marssac B','Gaillac FC','Graulhet FC',
+    'Saint-Sulpice FC','Rabastens Couffouleux','US Carmaux',
+    'Castres FC','Labruguière FC','Puylaurens FC'
+  ],
+  'Tarn-et-Garonne':[
+    'Montauban FC B','Castelsarrasin Gandalou','Moissac FC',
+    'Caussade FC','Montech FC','Grisolles FC',
+    'Beaumont-de-Lomagne','Nègrepelisse FC','Valence-d’Agen','Labastide-Saint-Pierre'
+  ],
+  'Ariège':[
+    'FC Foix','Luzenac AP B','Saint-Girons FC','Pamiers FC',
+    'Saverdun FC','Mirepoix FC','Tarascon-sur-Ariège',
+    'Lavelanet FC','Varilhes FC','Mazères FC'
+  ],
+  'Aude':[
+    'FA Carcassonne B','Narbonne Montplaisir','Castelnaudary FC',
+    'Limoux FC','Trèbes FC','Lézignan FC','Gruissan FC',
+    'Coursan FC','Quillan FC','Bram FC'
+  ],
+  'Gers':[
+    'Auch Football B','Fleurance FC','L’Isle-Jourdain FC',
+    'Condom FC','Gimont FC','Lectoure FC','Vic-Fezensac',
+    'Mirande FC','Masseube FC','Samatan FC'
+  ],
+  'Hautes-Pyrénées':[
+    'Tarbes PF B','Lourdes FC','Bagnères-de-Bigorre',
+    'Aureilhan FC','Séméac FC','Argelès-Gazost',
+    'Lannemezan FC','Vic-en-Bigorre','Juillan FC','Soues Cigognes'
+  ],
+  'Lot':[
+    'Cahors FC B','Figeac Capdenac','Gourdon FC','Biars Bretenoux',
+    'Pradines FC','Souillac FC','Saint-Céré FC',
+    'Gramat FC','Lalbenque FC','Martel FC'
+  ]
+};
+
 
 const REGIONAL = [
   'EFCV Verfeil','FC Girou',"L'Union Saint-Jean",'FC Lauragais',
@@ -804,15 +857,21 @@ function save(){localStorage.setItem(SAVE_KEY,JSON.stringify(state))}
 function load(){
   try{
     let raw=localStorage.getItem(SAVE_KEY);
+
     if(!raw){
       for(const key of LEGACY_SAVE_KEYS){
         raw=localStorage.getItem(key);
         if(raw)break;
       }
     }
+
     const data=JSON.parse(raw);
     const normalized=normalizeState(data);
-    if(normalized)localStorage.setItem(SAVE_KEY,JSON.stringify(normalized));
+
+    if(normalized){
+      localStorage.setItem(SAVE_KEY,JSON.stringify(normalized));
+    }
+
     return normalized;
   }catch{
     return null;
@@ -1027,8 +1086,9 @@ function newState(first,last,pos,club,nationality,secondNationality,department){
       preseasonDone:false,forceBench:false,actionBonus:0,
       actionGoal:0,actionAssist:0,lastActionMessage:'',regionalClubChoice:false
     },
-    league:makeLeague(club,'Régional jeunes'),
+    league:makeLeague(club,'Départemental jeunes',department),
     competitions:{active:[],calendar:[],trophies:[],records:[]}
+
   };
 }
 
@@ -2573,8 +2633,14 @@ function nextSeason(){
 
   p.fatigue=clamp(p.fatigue-30);
   p.form=clamp(p.form+8);
-  state.league=makeLeague(p.club,level);
-  state.competitions={active:competitionIdsForPlayer(p).map(createCompetition),calendar:[],trophies:state.competitions?.trophies||[],records:state.competitions?.records||[]};
+  state.league=makeLeague(p.club,level,p.department);
+  state.competitions={
+    active:competitionIdsForPlayer(p).map(createCompetition),
+    calendar:[],
+    trophies:state.competitions?.trophies||[],
+    records:state.competitions?.records||[]
+  };
+
   save();render();
 }
 
@@ -3108,16 +3174,27 @@ $('startCareer').onclick=()=>{
     return alert('Complète les informations.');
   }
 
-  state=newState(f,l,p,c,n,n2);
-  log('Début de carrière',`Arrivée au ${c} à 13 ans.`);
-  initializeCompetitions(true);save();show('game');render();
+  state=newState(f,l,p,c,n,n2,d);
+  log(
+    'Début de carrière',
+    `Arrivée au ${c}, dans le département ${d}, à 13 ans en Départemental jeunes.`
+  );
+  initializeCompetitions(true);
+  save();
+  show('game');
+  render();
+
 };
 
 $('homeBtn').onclick=()=>show('home');
 $('saveBtn').onclick=()=>{save();alert('Sauvegarde effectuée.')};
 $('deleteBtn').onclick=()=>{
   if(confirm('Supprimer la carrière ?')){
-    localStorage.removeItem(SAVE_KEY);LEGACY_SAVE_KEYS.forEach(k=>localStorage.removeItem(k));state=null;show('home');
+    localStorage.removeItem(SAVE_KEY);
+    LEGACY_SAVE_KEYS.forEach(k=>localStorage.removeItem(k));
+    state=null;
+    show('home');
+
   }
 };
 
