@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.1.2 — COMPÉTITIONS & DÉPARTEMENTS</title>
+<title>TCROMA ACADEMY V4.2.2 — ÉTRANGER & FIN DE CARRIÈRE</title>
 
 <style>
 *{box-sizing:border-box}
@@ -39,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.1.2 — COMPÉTITIONS & DÉPARTEMENTS</h1>
+    <h1>⚽ TCROMA ACADEMY V4.2.2 — ÉTRANGER & FIN DE CARRIÈRE</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
-    <p>De 13 ans aux seniors : départements, championnat, coupes, tirages, exploits et finales.</p>
-    <p class="muted">Version 4.1.2 — Compétitions & Départements</p>
+    <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
+    <p class="muted">Version 4.2.2 — Étranger & fin de carrière</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -161,8 +161,11 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV412D';
+const SAVE_KEY = 'tcromaAcademyV422';
 const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV421',
+  'tcromaAcademyV420',
+  'tcromaAcademyV412D',
   'tcromaAcademyV412',
   'tcromaAcademyV411',
   'tcromaAcademyV41',
@@ -243,6 +246,240 @@ const PRO_LEVELS = [
   {name:'Ligue 1',min:68,clubs:['Toulouse FC','Montpellier HSC','AS Monaco','Lille OSC']}
 ];
 
+
+const YOUTH_ACADEMIES = {
+  L2:[
+    {club:'Rodez AF',country:'France',language:'Français',prestige:58},
+    {club:'Pau FC',country:'France',language:'Français',prestige:57},
+    {club:'Guingamp',country:'France',language:'Français',prestige:60},
+    {club:'Grenoble Foot 38',country:'France',language:'Français',prestige:59},
+    {club:'Bastia',country:'France',language:'Français',prestige:58},
+    {club:'Real Zaragoza',country:'Espagne',language:'Espagnol',prestige:61},
+    {club:'Sporting Gijón',country:'Espagne',language:'Espagnol',prestige:60},
+    {club:'Schalke 04',country:'Allemagne',language:'Allemand',prestige:64},
+    {club:'Sampdoria',country:'Italie',language:'Italien',prestige:63},
+    {club:'Marítimo',country:'Portugal',language:'Portugais',prestige:57}
+  ],
+  L1:[
+    {club:'Toulouse FC',country:'France',language:'Français',prestige:75},
+    {club:'Montpellier HSC',country:'France',language:'Français',prestige:73},
+    {club:'AS Monaco',country:'France',language:'Français',prestige:84},
+    {club:'Lille OSC',country:'France',language:'Français',prestige:82},
+    {club:'Rennes',country:'France',language:'Français',prestige:79},
+    {club:'Real Sociedad',country:'Espagne',language:'Espagnol',prestige:81},
+    {club:'Villarreal',country:'Espagne',language:'Espagnol',prestige:80},
+    {club:'Atalanta',country:'Italie',language:'Italien',prestige:82},
+    {club:'PSV Eindhoven',country:'Pays-Bas',language:'Néerlandais',prestige:81},
+    {club:'Sporting CP',country:'Portugal',language:'Portugais',prestige:83}
+  ],
+  ELITE:[
+    {club:'Paris SG',country:'France',language:'Français',prestige:96},
+    {club:'Real Madrid',country:'Espagne',language:'Espagnol',prestige:99},
+    {club:'FC Barcelona',country:'Espagne',language:'Espagnol',prestige:98},
+    {club:'Liverpool',country:'Angleterre',language:'Anglais',prestige:97},
+    {club:'Arsenal',country:'Angleterre',language:'Anglais',prestige:95},
+    {club:'Bayern Munich',country:'Allemagne',language:'Allemand',prestige:98},
+    {club:'Inter Milan',country:'Italie',language:'Italien',prestige:95},
+    {club:'Benfica',country:'Portugal',language:'Portugais',prestige:91},
+    {club:'Ajax',country:'Pays-Bas',language:'Néerlandais',prestige:90}
+  ]
+};
+
+function academyScore(){
+  const p=state.player;
+  const avg=(p.tech+p.speed+p.physical+p.mental)/4;
+  const perf=rating();
+  let positional=0;
+
+  if(role()==='GK'){
+    positional=Math.min(18,(p.cleanSheets||0)*1.3+(p.pensSaved||0)*2+(p.saves||0)/18);
+  }else if(role()==='DEF'){
+    positional=Math.min(14,(p.motm||0)*2+Math.max(0,perf-6)*3);
+  }else if(role()==='MID'){
+    positional=Math.min(18,(p.assists||0)*1.2+(p.goals||0)*.6);
+  }else{
+    positional=Math.min(18,(p.goals||0)*1.1+(p.assists||0)*.5);
+  }
+
+  return avg*.35+p.potential*.23+p.reputation*.20+Math.max(0,perf-5)*5+positional;
+}
+
+function academyOfferCount(score){
+  if(score>=91)return 3;
+  if(score>=82)return 3;
+  if(score>=72)return 2;
+  if(score>=64)return 1;
+  return 0;
+}
+
+function academyTier(score){
+  if(score>=94)return ['ELITE','L1','L1'];
+  if(score>=84)return ['L1','L1','L2'];
+  if(score>=74)return ['L1','L2','L2'];
+  return ['L2','L2','L2'];
+}
+
+function canReceiveAcademyOffers(){
+  const p=state.player;
+  if(p.age<14 || p.age>17 || p.pro)return false;
+
+  if(p.academy && p.academy!=='Aucun'){
+    const seasons=Math.max(0,p.age-(p.academySinceAge??p.age));
+    const crack=academyScore()>=94 && p.potential>=86;
+    if(seasons<2 && !crack)return false;
+    if(!crack && academyScore()<86)return false;
+  }
+  return true;
+}
+
+function generateAcademyOffers(moment='fin'){
+  const p=state.player;
+  if(!canReceiveAcademyOffers())return [];
+
+  p.academyOffers=(p.academyOffers||[]).filter(o=>['active','waiting'].includes(o.status));
+  if(p.academyOffers.some(o=>o.moment===moment && ['active','waiting'].includes(o.status))){
+    return p.academyOffers;
+  }
+
+  const score=academyScore();
+  const count=academyOfferCount(score);
+  if(!count)return [];
+
+  const tiers=academyTier(score);
+  const used=new Set([p.club]);
+  const offers=[];
+
+  for(let i=0;i<count;i++){
+    const tier=tiers[i]||tiers[tiers.length-1];
+    const choices=(YOUTH_ACADEMIES[tier]||[]).filter(c=>!used.has(c.club));
+    if(!choices.length)continue;
+    const target=pick(choices);
+    used.add(target.club);
+
+    offers.push({
+      id:`acad_${Date.now()}_${i}_${rand(10,99)}`,
+      club:target.club,country:target.country,language:target.language,
+      prestige:target.prestige,tier,moment,status:'active',
+      score:Math.round(score),
+      message:`${target.club} souhaite te recruter pour son centre de formation.`
+    });
+  }
+
+  p.academyOffers.push(...offers);
+  if(offers.length){
+    log('Recrutement centre de formation',
+      `${offers.length} proposition(s) concrète(s) reçue(s) ${moment==='mi'?'à mi-saison':'en fin de saison'}.`);
+  }
+  return offers;
+}
+
+function changeClubCareer(newClub,type='Changement de club'){
+  const p=state.player;
+  if(!newClub || newClub===p.club)return;
+  const old=p.club;
+
+  p.club=newClub;
+  p.currentClubSinceAge=p.age;
+  p.currentCountry=clubCountry(newClub);
+  p.coachProfile=coachForClub(newClub,p.coachProfile?.name||'');
+  p.coachTenure=0;
+  p.coach=50;
+  p.captain=false;
+  p.viceCaptain=false;
+  p.transferHistory=p.transferHistory||[];
+  p.transferHistory.push({age:p.age,from:old,to:newClub,type,country:p.currentCountry});
+  log(type,`${old} → ${newClub}. Nouvel entraîneur : ${p.coachProfile.name} (${p.coachProfile.style}).`);
+}
+
+function acceptAcademyOffer(id){
+  const p=state.player;
+  const o=(p.academyOffers||[]).find(x=>x.id===id&&['active','waiting'].includes(x.status));
+  if(!o)return;
+
+  const old=p.club;
+  changeClubCareer(o.club,'Entrée en centre de formation');
+  p.academy=`${o.club} - Centre de formation`;
+  p.academySinceAge=p.age;
+  p.national=true;
+  p.academyCountry=o.country;
+  p.academyLanguage=o.language;
+  p.currentCountry=o.country;
+  p.languages=p.languages||{Français:100};
+
+  if(o.country!=='France'){
+    if(!p.languages[o.language])p.languages[o.language]=15;
+    p.adaptation=35;
+    p.homeSickness=p.age<=16?42:p.age<=18?32:20;
+    p.maturity=clamp((p.maturity||25)+2);
+    p.internationalExperience=clamp((p.internationalExperience||0)+3);
+    p.morale=clamp(p.morale-3);
+    p.mental=clamp(p.mental+1);
+  }else{
+    p.adaptation=clamp((p.adaptation||50)+8);
+    p.homeSickness=0;
+  }
+
+  state.league=makeAcademyLeague(o.country,o.club);
+  state.season.round=Math.min(state.season.round,state.league.schedule.length);
+  p.seasonStartClub=o.club;
+  p.seasonStartLevel=state.league.level;
+
+  o.status='accepted';
+  (p.academyOffers||[]).forEach(x=>{
+    if(x.id!==id&&['active','waiting'].includes(x.status))x.status='withdrawn';
+  });
+
+  p.marketMessage=`Tu acceptes ${o.club}. Tu évolueras en ${state.league.level} (${o.country}).`;
+  log('Choix du centre',`${old} → ${o.club}. Départ en ${o.country}. Championnat : ${state.league.level}.`);
+}
+
+function waitAcademyOffer(id){
+  const p=state.player;
+  const o=(p.academyOffers||[]).find(x=>x.id===id&&x.status==='active');
+  if(!o)return;
+
+  const patience=.58+(p.reputation/500)+(p.potential/600);
+  if(Math.random()<clamp(patience,.45,.82)){
+    o.status='waiting';
+    o.message=`${o.club} accepte d’attendre ta décision jusqu’à la prochaine échéance.`;
+  }else{
+    o.status='withdrawn';
+    o.message=`${o.club} refuse d’attendre et retire sa proposition.`;
+  }
+  log('Réponse au recruteur',o.message);
+}
+
+function rejectAcademyOffer(id){
+  const o=(state.player.academyOffers||[]).find(x=>x.id===id);
+  if(!o)return;
+  o.status='rejected';
+  o.message=`Tu refuses ${o.club} et restes dans ton club actuel.`;
+  log('Offre refusée',o.message);
+}
+
+function academyOffersHTML(){
+  const offers=(state.player.academyOffers||[]).filter(o=>['active','waiting'].includes(o.status));
+  if(!offers.length)return '';
+
+  return `<div class="card">
+    <h2>📨 Propositions de centres de formation</h2>
+    <p class="muted">Aucun changement n’est automatique : tu décides.</p>
+    ${offers.map(o=>`<div class="trophy">
+      <strong>${o.club}</strong> — ${o.tier==='ELITE'?'Élite':o.tier}<br>
+      ${o.country}${o.country!=='France'?` • langue : ${o.language}`:''}<br>
+      <span class="muted">${o.message}</span>
+      ${o.status==='active'?`
+        <button data-act="academyAccept" data-id="${o.id}">Accepter</button>
+        <button class="secondary" data-act="academyWait" data-id="${o.id}">Demander un délai</button>
+        <button class="danger" data-act="academyReject" data-id="${o.id}">Refuser</button>
+      `:`
+        <button data-act="academyAccept" data-id="${o.id}">Accepter maintenant</button>
+        <button class="danger" data-act="academyReject" data-id="${o.id}">Refuser</button>
+      `}
+    </div>`).join('')}
+  </div>`;
+}
+
 const AGENTS = [
   {id:'family',name:'La famille',level:0,commission:0,network:'Clubs locaux'},
   {id:'local',name:'Agent local occitan',level:1,commission:5,network:'Régional et National'},
@@ -258,6 +495,204 @@ const REGIONAL_TRIAL_CLUBS = [
   {name:'FC Lavaur',level:'R1/R2',need:['Milieu relayeur','Ailier gauche','Gardien']},
   {name:'Balma SC',level:'R1/N3',need:['Attaquant','Défenseur central','Milieu défensif']}
 ];
+
+
+const YOUTH_LEAGUES_BY_COUNTRY = {
+  France:{level:'National jeunes',clubs:['Toulouse FC Jeunes','Montpellier HSC Jeunes','AS Monaco Jeunes','Lille OSC Jeunes','Rennes Jeunes','Rodez AF Jeunes','Pau FC Jeunes','Bordeaux Jeunes','Nîmes Jeunes','Clermont Foot Jeunes']},
+  Espagne:{level:'Liga Nacional Juvenil',clubs:['Real Madrid','FC Barcelona','Atlético Madrid','Villarreal','Real Sociedad','Valence','Séville','Betis','Athletic Bilbao','Gérone']},
+  Angleterre:{level:'Premier League Academy',clubs:['Liverpool','Arsenal','Manchester City','Chelsea','Manchester United','Tottenham','Newcastle','Aston Villa','Everton','West Ham']},
+  Italie:{level:'Campionato Primavera',clubs:['Inter Milan','AC Milan','Juventus','Atalanta','Roma','Lazio','Naples','Fiorentina','Bologne','Torino']},
+  Allemagne:{level:'U19 Bundesliga',clubs:['Bayern Munich','Borussia Dortmund','Leverkusen','RB Leipzig','Francfort','Stuttgart','Wolfsburg','Fribourg','Schalke 04','Hambourg']},
+  Portugal:{level:'Campeonato Nacional Sub-19',clubs:['Benfica','FC Porto','Sporting CP','Braga','Vitória Guimarães','Famalicão','Boavista','Marítimo','Nacional','Estoril']},
+  'Pays-Bas':{level:'Eredivisie U19',clubs:['Ajax','PSV Eindhoven','Feyenoord','AZ Alkmaar','FC Utrecht','Twente','Heerenveen','Sparta Rotterdam','Groningen','Vitesse']},
+  Belgique:{level:'Elite 1 U18',clubs:['Anderlecht','Club Bruges','Genk','Standard de Liège','La Gantoise','Antwerp','Charleroi','Saint-Trond','Malines','Cercle Bruges']}
+};
+
+const COACH_NAMES_BY_COUNTRY = {
+  France:['Julien Marty','Romain Delmas','Sébastien Costa','Nicolas Ferrand','Antoine Morel','David Carrière'],
+  Espagne:['Javier Mendoza','Álvaro Serrano','Diego Valverde','Sergio Navarro','Carlos Montalbán','Miguel Herrera'],
+  Angleterre:['James Walker','Daniel Hughes','Oliver Bennett','Michael Turner','Thomas Reed','Ryan Foster'],
+  Italie:['Marco Bellini','Luca Ferraro','Andrea Conti','Matteo Romano','Stefano Rinaldi','Paolo Moretti'],
+  Allemagne:['Thomas Keller','Markus Vogel','Felix Hartmann','Julian Becker','Stefan Krüger','Daniel Hoffmann'],
+  Portugal:['Tiago Almeida','Rui Carvalho','Miguel Ferreira','João Matos','Bruno Correia','Pedro Faria'],
+  'Pays-Bas':['Jeroen de Vries','Willem van Dijk','Koen Smit','Daan Bakker','Ruben Visser','Niels de Boer'],
+  Belgique:['Thomas Vermeulen','Jeroen Peeters','Nicolas Dubois','Laurent Maes','Sébastien Lambert','Mathieu Claes'],
+  'Arabie saoudite':['Fahd Al-Harbi','Nasser Al-Qahtani','Omar Al-Salem'],
+  Qatar:['Hamad Al-Kuwari','Youssef Al-Thani','Khalid Al-Mansoori'],
+  USA:['Michael Carter','Jason Miller','Daniel Brooks','Ryan Cooper'],
+  Chine:['Li Wei','Zhang Hao','Chen Ming','Wang Jun']
+};
+
+const LATE_CAREER_DESTINATIONS = [
+  {league:'Saudi Pro League',country:'Arabie saoudite',money:2.8,elite:true},
+  {league:'Qatar Stars League',country:'Qatar',money:2.5,elite:true},
+  {league:'MLS',country:'USA',money:1.9,elite:true},
+  {league:'Jupiler Pro League',country:'Belgique',money:1.05,elite:false},
+  {league:'Chinese Super League',country:'Chine',money:1.45,elite:false},
+  {league:'MLS',country:'USA',money:1.35,elite:false}
+];
+
+function clubCountry(club){
+  if(club==='EFCV Verfeil')return 'France';
+  for(const [country,data] of Object.entries(YOUTH_LEAGUES_BY_COUNTRY)){
+    if(data.clubs.includes(club))return country;
+  }
+  for(const data of Object.values(PRO_LEAGUES||{})){
+    if(data.clubs?.includes(club))return data.country;
+  }
+  const acad=(state?.player?.academyOffers||[]).find(o=>o.club===club);
+  return acad?.country || state?.player?.academyCountry || 'France';
+}
+
+function makeAcademyLeague(country,club){
+  const data=YOUTH_LEAGUES_BY_COUNTRY[country]||YOUTH_LEAGUES_BY_COUNTRY.France;
+  let clubs=[club,...data.clubs.filter(c=>c!==club)].slice(0,10);
+  if(clubs.length%2!==0)clubs=clubs.slice(0,clubs.length-1);
+  return {level:data.level,country,clubs,table:clubs.map(freshTeam),schedule:schedule(clubs)};
+}
+
+function coachForClub(club,excludeName=''){
+  if(club==='EFCV Verfeil'){
+    return {
+      name:'Florent Véauté',style:'Pompe à vélo',
+      preference:'Physique et discipline',patience:32,
+      description:'Personnage emblématique de Verfeil : décisions imprévisibles, discours très personnels et management à l’ancienne.'
+    };
+  }
+
+  const country=clubCountry(club);
+  const names=(COACH_NAMES_BY_COUNTRY[country]||COACH_NAMES_BY_COUNTRY.France).filter(n=>n!==excludeName);
+  const name=pick(names.length?names:COACH_NAMES_BY_COUNTRY.France);
+  const profiles=[
+    {style:'Formateur',preference:'Technique et progression',patience:72,description:'Il privilégie la progression et donne du temps aux jeunes.'},
+    {style:'Tacticien',preference:'Mental et intelligence de jeu',patience:56,description:'Il demande beaucoup de rigueur tactique.'},
+    {style:'Exigeant',preference:'Physique et discipline',patience:43,description:'Il attend intensité et régularité.'},
+    {style:'Protecteur',preference:'Vestiaire et confiance',patience:70,description:'Il protège les jeunes mais exige de la loyauté.'},
+    {style:'Audacieux',preference:'Vitesse et créativité',patience:50,description:'Il aime les joueurs capables de prendre des initiatives.'}
+  ];
+  const profile=pick(profiles);
+  return {
+    name,style:profile.style,preference:profile.preference,patience:profile.patience,
+    description:`${profile.description} ${Math.random()<.35?'Ancien joueur du club, il connaît parfaitement la maison.':''}`.trim(),
+    country
+  };
+}
+
+function isAbroad(){
+  const p=state.player;
+  const country=p.academyCountry||p.currentCountry||clubCountry(p.club);
+  return Boolean(country && country!=='France');
+}
+
+function foreignAdaptationEvent(){
+  const p=state.player;
+  const language=p.academyLanguage||'la langue locale';
+  const playsLittle=(p.seasonMatches||0) <= Math.max(1,Math.floor((state.season.round||1)*.28));
+
+  if(playsLittle && state.season.round>=6){
+    return {
+      title:'Tu joues peu à l’étranger',
+      text:'Tu es loin de ta famille et ton temps de jeu reste faible. Tu dois décider comment réagir.',
+      choices:[
+        ['Je reste et je me bats pour gagner ma place',{mental:3,maturity:3,adaptation:3,homeSickness:-2}],
+        ['Je demande un retour en France',{returnFranceRequest:true,maturity:1}],
+        ['Je demande à attendre jusqu’à la trêve',{mental:2,maturity:2,homeSickness:1}],
+        ['Je parle avec le coach pour comprendre la situation',{coach:3,adaptation:2,maturity:2}]
+      ]
+    };
+  }
+
+  return pick([
+    {title:'Mal du pays',text:'Ta famille et tes habitudes françaises commencent à te manquer.',choices:[
+      ['J’appelle longuement ma famille',{morale:4,homeSickness:-6,maturity:1}],
+      ['Je sors avec mes coéquipiers',{locker:4,adaptation:5,homeSickness:-3}],
+      ['Je garde tout pour moi',{mental:1,homeSickness:5,morale:-3}],
+      ['Je demande un week-end en France',{morale:3,homeSickness:-5,fatigue:2}]
+    ]},
+    {title:'Cours de langue',text:`Le club te propose un cours intensif de ${language}.`,choices:[
+      ['Je m’investis à fond',{languageGain:12,adaptation:5,maturity:2,fatigue:2}],
+      ['Je fais le minimum',{languageGain:4,adaptation:1}],
+      ['Je demande à un coéquipier de m’aider',{languageGain:8,locker:3,adaptation:4}],
+      ['Je préfère me concentrer sur le football',{mental:1,languageGain:1,adaptation:-1}]
+    ]},
+    {title:'Consigne mal comprise',text:'Pendant une séance, tu comprends mal une consigne tactique du coach.',choices:[
+      ['Je demande qu’on me réexplique',{languageGain:5,coach:2,maturity:2}],
+      ['Je copie ce que font les autres',{adaptation:2,mental:1}],
+      ['Je fais semblant d’avoir compris',{coach:-2,homeSickness:2}],
+      ['Je demande l’aide d’un coéquipier',{locker:3,languageGain:4,adaptation:3}]
+    ]},
+    {title:'Tu commences à trouver tes repères',text:'Tu connais mieux la ville, le centre et tes coéquipiers.',choices:[
+      ['Je m’ouvre davantage au groupe',{adaptation:6,locker:4,maturity:2}],
+      ['Je continue les cours de langue',{languageGain:8,adaptation:3}],
+      ['Je garde mes habitudes françaises',{homeSickness:-1,morale:2}],
+      ['Je découvre davantage le pays',{adaptation:7,maturity:3,internationalExperience:2}]
+    ]}
+  ]);
+}
+
+function requestReturnToFrance(){
+  const p=state.player;
+  const score=academyScore();
+  const allowed=Math.random()<clamp(.48+p.reputation/350+(p.maturity||25)/500,.45,.86);
+
+  if(!allowed){
+    p.marketMessage='Ton club refuse pour l’instant ton départ et veut refaire le point à la prochaine fenêtre.';
+    log('Retour en France',p.marketMessage);
+    return;
+  }
+
+  const french=[
+    ...YOUTH_ACADEMIES.L2.filter(x=>x.country==='France'),
+    ...YOUTH_ACADEMIES.L1.filter(x=>x.country==='France')
+  ].filter(x=>x.club!==p.club);
+
+  const count=score>=82?3:2;
+  const choices=[...french].sort(()=>Math.random()-.5).slice(0,count);
+
+  p.academyOffers=(p.academyOffers||[]).filter(o=>!['active','waiting'].includes(o.status));
+  choices.forEach((target,i)=>{
+    p.academyOffers.push({
+      id:`return_fr_${Date.now()}_${i}`,
+      club:target.club,country:'France',language:'Français',
+      prestige:target.prestige,tier:target.prestige>=72?'L1':'L2',
+      moment:'retourFrance',status:'active',score:Math.round(score),
+      message:`${target.club} est prêt à discuter d’un retour en France.`
+    });
+  });
+
+  p.marketMessage=`Ton club accepte d’étudier un retour. ${choices.length} possibilité(s) apparaissent en France.`;
+  log('Retour en France',p.marketMessage);
+}
+
+function generateLateCareerOffers(){
+  const p=state.player;
+  if(p.age<31 || !p.pro)return [];
+  const elite=p.reputation>=74 || rating()>=7.4;
+  const baseSalary=Math.max(3500,Number(p.contract?.monthly)||6000);
+  const pools=LATE_CAREER_DESTINATIONS.filter(d=>elite?true:!d.elite||d.country==='USA');
+  const shuffled=[...pools].sort(()=>Math.random()-.5).slice(0,3);
+  const offers=[];
+
+  for(const d of shuffled){
+    const league=PRO_LEAGUES[d.league];
+    if(!league)continue;
+    const club=pick(league.clubs);
+    const moneyFactor=elite?d.money:Math.max(.9,d.money*.8);
+
+    offers.push({
+      id:`late_${Date.now()}_${offers.length}`,
+      club,level:d.league,country:d.country,
+      years:p.age>=34?1:pick([1,2]),
+      monthly:Math.round(baseSalary*moneyFactor/100)*100,
+      signingBonus:Math.round(baseSalary*moneyFactor*rand(3,8)/100)*100,
+      role:elite&&d.elite?'Star / cadre':'Titulaire potentiel',
+      loan:false,purchaseOption:false,status:'active',countered:false,
+      lateCareer:true,
+      motive:elite&&d.elite?'Gros contrat financier':'Temps de jeu et nouvelle expérience'
+    });
+  }
+  return offers;
+}
 
 const PRO_LEAGUES = {
   'Ligue 1': {
@@ -309,6 +744,13 @@ const PRO_LEAGUES = {
     clubs:['Marítimo','Nacional','Académico Viseu','Leixões','Penafiel','Tondela','Feirense','Mafra','Oliveirense','Torreense']
   }
 };
+
+
+PRO_LEAGUES['Saudi Pro League']={country:'Arabie saoudite',prestige:78,clubs:['Al Hilal','Al Nassr','Al Ittihad','Al Ahli','Al Ettifaq','Al Shabab','Al Fateh','Al Taawoun','Al Qadsiah','Al Riyadh']};
+PRO_LEAGUES['Qatar Stars League']={country:'Qatar',prestige:66,clubs:['Al Sadd','Al Duhail','Al Rayyan','Al Gharafa','Qatar SC','Al Arabi','Umm Salal','Al Wakrah','Al Ahli Doha','Al Shamal']};
+PRO_LEAGUES['MLS']={country:'USA',prestige:70,clubs:['Inter Miami','LA Galaxy','Los Angeles FC','New York City FC','Seattle Sounders','Atlanta United','Portland Timbers','Orlando City','Austin FC','Columbus Crew']};
+PRO_LEAGUES['Jupiler Pro League']={country:'Belgique',prestige:69,clubs:['Anderlecht','Club Bruges','Genk','Standard de Liège','La Gantoise','Antwerp','Charleroi','Saint-Trond','Malines','Cercle Bruges']};
+PRO_LEAGUES['Chinese Super League']={country:'Chine',prestige:60,clubs:['Shanghai Port','Shanghai Shenhua','Beijing Guoan','Shandong Taishan','Chengdu Rongcheng','Tianjin Jinmen Tiger','Wuhan Three Towns','Henan FC','Zhejiang FC','Qingdao Hainiu']};
 
 const PRESS_EVENTS = [
   {
@@ -366,31 +808,10 @@ const NATIONAL_COMPETITIONS = {
 };
 
 const COACH_PROFILES = [
-  {
-    name:'Florent Véauté',style:'Autoritaire',
-    preference:'Physique et discipline',patience:38,
-    description:'Il exige intensité, ponctualité et respect des consignes.'
-  },
-  {
-    name:'Julien Marty',style:'Formateur',
-    preference:'Technique et progression',patience:72,
-    description:'Il donne du temps aux jeunes et explique ses décisions.'
-  },
-  {
-    name:'Romain Delmas',style:'Tacticien',
-    preference:'Mental et intelligence de jeu',patience:55,
-    description:'Il change souvent de système et attend une grande discipline tactique.'
-  },
-  {
-    name:'Sébastien Costa',style:'Proche du groupe',
-    preference:'Vestiaire et confiance',patience:66,
-    description:'Il protège les joueurs mais supporte mal les trahisons.'
-  },
-  {
-    name:'Marco Silva',style:'International',
-    preference:'Vitesse et créativité',patience:48,
-    description:'Il favorise les joueurs audacieux et les profils offensifs.'
-  }
+  {name:'Julien Marty',style:'Formateur',preference:'Technique et progression',patience:72,description:'Il donne du temps aux jeunes et explique ses décisions.'},
+  {name:'Romain Delmas',style:'Tacticien',preference:'Mental et intelligence de jeu',patience:55,description:'Il change souvent de système et attend une grande discipline tactique.'},
+  {name:'Sébastien Costa',style:'Proche du groupe',preference:'Vestiaire et confiance',patience:66,description:'Il protège les joueurs mais supporte mal les trahisons.'},
+  {name:'Marco Silva',style:'International',preference:'Vitesse et créativité',patience:48,description:'Il favorise les joueurs audacieux et les profils offensifs.'}
 ];
 
 const STAFF_MEMBERS = [
@@ -950,6 +1371,23 @@ function normalizeState(data){
   p.staffHistory=Array.isArray(p.staffHistory)?p.staffHistory:[];
   p.travelHistory=Array.isArray(p.travelHistory)?p.travelHistory:[];
   p.currentStaff=Array.isArray(p.currentStaff)&&p.currentStaff.length?p.currentStaff:[...STAFF_MEMBERS];
+  p.maturity=clamp(Number(p.maturity)||25);
+  p.internationalExperience=clamp(Number(p.internationalExperience)||0);
+  p.adaptation=clamp(Number(p.adaptation)||50);
+  p.homeSickness=clamp(Number(p.homeSickness)||0);
+  p.seasonMatches=Number(p.seasonMatches)||0;
+  p.currentCountry=p.currentCountry||clubCountry(p.club);
+
+  p.academyOffers=Array.isArray(p.academyOffers)?p.academyOffers:[];
+  p.academySinceAge=p.academySinceAge??(p.academy&&p.academy!=='Aucun'?p.age:null);
+  p.currentClubSinceAge=p.currentClubSinceAge??p.age;
+  p.academyCountry=p.academyCountry||'France';
+  p.academyLanguage=p.academyLanguage||'Français';
+  p.languages=p.languages||{Français:100};
+  p.awardDetails=Array.isArray(p.awardDetails)?p.awardDetails:[];
+  p.seasonStartClub=p.seasonStartClub||p.club;
+  p.seasonStartLevel=p.seasonStartLevel||data.league?.level||'';
+
 
   s.round = Math.max(1, Number(s.round) || 1);
   s.phase = [
@@ -969,12 +1407,38 @@ function normalizeState(data){
   s.actionGoal = Number(s.actionGoal) || 0;
   s.actionAssist = Number(s.actionAssist) || 0;
   s.restDecision = Boolean(s.restDecision);
+  s.actionOpponentGoal=Number(s.actionOpponentGoal)||0;
+  s.actionSave=Number(s.actionSave)||0;
+  s.actionPenaltySaved=Number(s.actionPenaltySaved)||0;
+  s.actionTeamGoal=Number(s.actionTeamGoal)||0;
+  s.gkBench=Boolean(s.gkBench);
+  s.gkEntryMinute=Number(s.gkEntryMinute)||0;
+
   /*
     Correctif V4.1.2 :
     une ancienne sauvegarde peut arriver en phase "preseason"
     alors que la saison a déjà commencé. Dans ce cas, on saute
     automatiquement la préparation.
   */
+  if(p.academyCountry && p.academyCountry!=='France' && p.academy && p.academy!=='Aucun'){
+    const expected=YOUTH_LEAGUES_BY_COUNTRY[p.academyCountry];
+    if(expected && (!data.league || data.league.country!==p.academyCountry || !expected.clubs.some(c=>data.league.clubs?.includes(c)))){
+      data.league=makeAcademyLeague(p.academyCountry,p.club);
+      p.seasonStartClub=p.club;
+      p.seasonStartLevel=data.league.level;
+      s.round=Math.max(1,Math.min(s.round,data.league.schedule.length));
+    }
+  }
+
+  if(p.age===18 && p.academy && p.academy!=='Aucun' && data.league?.level==='Seniors régionaux'){
+    data.league=makeLeague(p.club,'National jeunes',p.department);
+    p.seasonStartClub=p.club;
+    p.seasonStartLevel='National jeunes';
+    s.round=1;
+    s.phase='preseason';
+    s.preseasonDone=false;
+  }
+
   if(s.phase==='preseason' && s.round>1){
     s.preseasonDone=true;
     s.phase='life';
@@ -1074,7 +1538,7 @@ function newState(first,last,pos,club,nationality,secondNationality,department){
     internationalTeam:'Aucune',internationalCaps:0,internationalGoals:0,
     profile:'Non défini',
     styleCounters:{creator:0,warrior:0,artist:0,finisher:0,leader:0},
-    seasonStartStats:null,careerPath:'Jeunes',pro:false,latePro:false,amateur:false,contract:null,offers:[],agent:{name:'Famille',level:0,commission:0},balance:0,totalIncome:0,totalExpenses:0,awards:[],honours:[],seasonAwards:[],poleStatus:'À venir',poleScore:0
+    seasonStartStats:null,seasonStartClub:club,seasonStartLevel:'Départemental jeunes',currentClubSinceAge:13,academySinceAge:null,academyOffers:[],languages:{Français:100},awardDetails:[],maturity:25,internationalExperience:0,adaptation:60,homeSickness:0,seasonMatches:0,currentCountry:'France',careerPath:'Jeunes',pro:false,latePro:false,amateur:false,contract:null,offers:[],agent:{name:'Famille',level:0,commission:0},balance:0,totalIncome:0,totalExpenses:0,awards:[],honours:[],seasonAwards:[],poleStatus:'À venir',poleScore:0
   };
 
   return {
@@ -1084,7 +1548,7 @@ function newState(first,last,pos,club,nationality,secondNationality,department){
       preMatch:null,matchAction:null,lastResult:null,absenceReason:'',
       seasonProcessed:false,midReportDone:false,endReport:null,midReport:null,
       preseasonDone:false,forceBench:false,actionBonus:0,
-      actionGoal:0,actionAssist:0,lastActionMessage:'',regionalClubChoice:false
+      actionGoal:0,actionAssist:0,actionOpponentGoal:0,actionSave:0,actionPenaltySaved:0,actionTeamGoal:0,gkBench:false,gkEntryMinute:0,lastActionMessage:'',regionalClubChoice:false
     },
     league:makeLeague(club,'Départemental jeunes',department),
     competitions:{active:[],calendar:[],trophies:[],records:[]}
@@ -1168,16 +1632,24 @@ function apply(effects){
 
     if(k==='fatigue' && v>0){
       const form=state.player.form||50;
-      if(form>=80) v=Math.ceil(v*.42);
-      else if(form>=70) v=Math.ceil(v*.52);
-      else if(form>=60) v=Math.ceil(v*.62);
-      else v=Math.ceil(v*.75);
+      const formFactor=form>=80?.38:form>=70?.46:form>=60?.54:.64;
+      const roleFactor=role()==='GK'?.48:.72;
+      v=Math.max(1,Math.ceil(v*formFactor*roleFactor));
     }
 
     if(['tech','speed','physical','mental','fatigue','form','coach','morale',
         'reputation','school','parents','locker','president','leadership',
-        'friendship','rivalry','staffRelation','injuryProtection'].includes(k)){
+        'friendship','rivalry','staffRelation','injuryProtection',
+        'maturity','internationalExperience','adaptation','homeSickness'].includes(k)){
       state.player[k]=clamp((state.player[k]||0)+v);
+    }else if(k==='languageGain'){
+      const lang=state.player.academyLanguage;
+      if(lang&&lang!=='Français'){
+        state.player.languages=state.player.languages||{Français:100};
+        state.player.languages[lang]=clamp((state.player.languages[lang]||0)+v);
+      }
+    }else if(k==='returnFranceRequest'){
+      if(v)requestReturnToFrance();
     }else{
       state.season[k]=v;
     }
@@ -1300,30 +1772,35 @@ function currentDerby(){
 function ageEventPool(){
   const a=state.player.age;
 
-  if(a>=15 && Math.random()<0.42){
+  if(isAbroad() && a<=21 && Math.random()<0.48){
+    return [foreignAdaptationEvent()];
+  }
+
+  if(a>=15 && Math.random()<0.38){
     return [immersionEventPool()];
   }
 
   if(state.player.pro && a>=18 && Math.random()<0.48){
     return [pressConference()];
   }
+
   if(a<=14) return [
     {
       title:'Contrôle demain',
       text:'Ta mère insiste pour que tu révises avant le foot.',
       choices:[
-        ['Je révise puis je vais au foot',{school:3,fatigue:4,mental:1}],
+        ['Je révise puis je vais au foot',{school:3,fatigue:3,mental:1}],
         ['Je vais directement au foot',{school:-2,coach:2,parents:-2}],
         ['Je reste réviser toute la soirée',{school:5,coach:-2,skipTraining:true}],
-        ['Je promets de réviser après',{school:1,parents:1,fatigue:3}]
+        ['Je promets de réviser après',{school:1,parents:1,fatigue:2}]
       ]
     },
     {
       title:'Ton père finit tard',
       text:'Il ne peut pas t’emmener à l’entraînement.',
       choices:[
-        ['Je demande à un coéquipier',{locker:2,coach:1}],
-        ['Je prends le vélo',{fatigue:8,mental:2}],
+        ['Je demande à un coéquipier de m’emmener',{locker:2,coach:1}],
+        ['Je prends le vélo',{fatigue:5,mental:2}],
         ['Je manque la séance',{coach:-5,form:-2,skipTraining:true}],
         ['J’appelle le coach pour prévenir',{coach:-1,mental:1,skipTraining:true}]
       ]
@@ -1332,10 +1809,10 @@ function ageEventPool(){
       title:'Pluie battante',
       text:'Le terrain est détrempé, mais le coach maintient la séance.',
       choices:[
-        ['J’y vais sans discuter',{mental:2,physical:1,fatigue:7}],
-        ['Je demande si c’est vraiment maintenu',{coach:0}],
+        ['J’y vais sans discuter',{mental:2,physical:1,fatigue:5}],
+        ['Je demande si la séance est vraiment maintenue',{coach:0}],
         ['Je reste au chaud',{coach:-4,morale:2,skipTraining:true}],
-        ['Je propose du covoiturage',{locker:3,reputation:1}]
+        ['Je m’équipe pour la pluie et j’y vais',{mental:2,coach:2,fatigue:3}]
       ]
     }
   ];
@@ -1343,22 +1820,22 @@ function ageEventPool(){
   if(a<=17) return [
     {
       title:'Soirée d’anniversaire',
-      text:'Une fille de ta classe t’invite la veille du match.',
+      text:'Des amis t’invitent à un anniversaire la veille du match.',
       choices:[
         ['Je refuse pour le foot',{mental:2,coach:2,morale:-1}],
-        ['J’y vais mais je rentre tôt',{morale:3,fatigue:5}],
-        ['Je reste jusqu’à 3 heures',{morale:6,fatigue:18,coach:-3}],
-        ['Je passe seulement une heure',{morale:2,fatigue:2}]
+        ['J’y vais mais je rentre tôt',{morale:3,fatigue:3}],
+        ['Je reste tard malgré le match',{morale:5,fatigue:9,coach:-3}],
+        ['Je passe seulement une heure',{morale:2,fatigue:1}]
       ]
     },
     {
-      title:'Sortie en boîte',
-      text:'Tes amis insistent pour que tu les accompagnes.',
+      title:'Sortie avec les coéquipiers',
+      text:'Le groupe propose un cinéma et un repas en début de soirée.',
       choices:[
-        ['Je refuse',{mental:2,form:2}],
-        ['Je viens mais sans alcool',{morale:3,fatigue:7}],
-        ['Je fais toute la nuit',{morale:7,fatigue:25,coach:-6,reputation:-2}],
-        ['Je préviens le coach et je rentre tôt',{morale:2,fatigue:5,coach:1}]
+        ['Je viens et je rentre tôt',{locker:3,morale:3,fatigue:2}],
+        ['Je préfère récupérer à la maison',{form:3,fatigue:-4}],
+        ['Je viens seulement au repas',{locker:2,morale:2,fatigue:1}],
+        ['Je reste plus longtemps que prévu',{locker:2,morale:3,fatigue:6,coach:-1}]
       ]
     },
     {
@@ -1366,12 +1843,25 @@ function ageEventPool(){
       text:'Ta copine veut te voir exactement pendant la séance.',
       choices:[
         ['Je vais à l’entraînement',{coach:3,mental:1,morale:-2}],
-        ['Je la vois après',{morale:2,fatigue:3}],
+        ['Je la vois après',{morale:2,fatigue:2}],
         ['Je manque la séance',{morale:5,coach:-5,skipTraining:true}],
         ['Je lui propose de venir au match',{morale:3,reputation:1}]
       ]
     }
   ];
+
+  if(a>=18 && Math.random()<.28){
+    return [{
+      title:'Sortie en boîte',
+      text:'Tes amis insistent pour sortir après la semaine d’entraînement.',
+      choices:[
+        ['Je refuse',{mental:2,form:2}],
+        ['J’y vais mais je rentre tôt',{morale:3,fatigue:4}],
+        ['Je fais toute la nuit',{morale:6,fatigue:13,coach:-5,reputation:-2}],
+        ['Je passe une heure puis je rentre',{morale:2,fatigue:2}]
+      ]
+    }];
+  }
 
   if(Math.random()<0.60) return [amateurEvent()];
 
@@ -1383,7 +1873,7 @@ function ageEventPool(){
         ['J’organise les voitures',{reputation:3,locker:4,mental:2}],
         ['J’attends les dirigeants',{morale:-1}],
         ['Je propose de reporter',{president:-2,coach:-1}],
-        ['Je pars avec deux coéquipiers',{locker:2,fatigue:3}]
+        ['Je pars avec deux coéquipiers',{locker:2,fatigue:2}]
       ]
     },
     {
@@ -1400,7 +1890,7 @@ function ageEventPool(){
       title:'Terrain en herbe sous le déluge',
       text:'Le synthétique est libre, mais le coach choisit l’herbe.',
       choices:[
-        ['Je respecte sa décision',{coach:1,fatigue:5}],
+        ['Je respecte sa décision',{coach:1,fatigue:3}],
         ['Je propose le synthétique calmement',{mental:1,coach:0}],
         ['Je critique devant le groupe',{coach:-5,locker:1,forceBench:true}],
         ['Je prépare mes crampons longs',{mental:2,physical:1}]
@@ -1416,21 +1906,84 @@ function createWeekEvent(){
 
 function trainingEvent(){
   const p=state.player;
-  if(p.fatigue>=60 || p.form<=50){
-    return {title:'⚠️ Le coach surveille ton état',text:`Fatigue ${Math.round(p.fatigue)} / Forme ${Math.round(p.form)}.`,choices:[
-      ['Séance allégée : je récupère',{fatigue:-15,form:6,forceBench:true}],
-      ['Repos complet',{fatigue:-24,form:9,coach:1,forceBench:true}],
-      ['Je continue normalement',{fatigue:7,mental:1,risk:.025}],
-      ['Travail technique léger',{tech:1,fatigue:-5,forceBench:true}]
-    ]};
+  const fatigueAlert=role()==='GK'?82:72;
+  const lowForm=role()==='GK'?42:45;
+
+  if(p.fatigue>=fatigueAlert || p.form<=lowForm){
+    return {
+      title:'⚠️ Le coach surveille ton état',
+      text:`Fatigue ${Math.round(p.fatigue)} / Forme ${Math.round(p.form)}.`,
+      choices:[
+        ['Séance allégée : je récupère',{fatigue:-13,form:6}],
+        ['Repos complet',{fatigue:-22,form:8,coach:1}],
+        ['Je continue normalement',{fatigue:5,mental:1,risk:.015}],
+        [role()==='GK'?'Travail de prises de balle léger':'Travail technique léger',{tech:1,fatigue:-4}]
+      ]
+    };
   }
+
+  if(role()==='GK'){
+    return pick([
+      {
+        title:'Atelier gardien — réflexes',
+        text:'Frappes à courte distance, réactions et secondes balles.',
+        choices:[
+          ['Je travaille mes réflexes',{speed:2,mental:1,fatigue:4}],
+          ['Je reste debout le plus longtemps possible',{mental:2,coach:1,fatigue:3}],
+          ['Je travaille les appuis courts',{speed:2,physical:1,fatigue:4}],
+          ['Je demande une série supplémentaire',{speed:2,mental:1,fatigue:6,coach:2}]
+        ]
+      },
+      {
+        title:'Travail tactique — gardien',
+        text:'Placement, profondeur et organisation du bloc défensif.',
+        choices:[
+          ['Je travaille mon placement selon le ballon',{mental:2,coach:2}],
+          ['Je commande ma défense en permanence',{mental:2,locker:3,leadership:2}],
+          ['Je travaille mes sorties dans la profondeur',{speed:1,mental:2,fatigue:3}],
+          ['Je travaille la relance et le placement du bloc',{tech:2,mental:1}]
+        ]
+      },
+      {
+        title:'Sorties aériennes',
+        text:'Centres, prises de balle et décisions dans la surface.',
+        choices:[
+          ['Je sécurise mes prises de balle',{tech:2,mental:1,fatigue:3}],
+          ['Je travaille les sorties au poing',{physical:2,mental:1,fatigue:4}],
+          ['Je communique avant chaque sortie',{leadership:2,locker:2,mental:1}],
+          ['Je répète les centres sous pression',{tech:2,physical:1,fatigue:5}]
+        ]
+      },
+      {
+        title:'Opposition interne — gardien',
+        text:'Le coach observe particulièrement les gardiens pendant le match d’entraînement.',
+        choices:[
+          ['Je sécurise mes prises de balle',{tech:2,coach:2}],
+          ['Je sors rapidement dans les pieds',{speed:2,mental:1,fatigue:4}],
+          ['Je joue haut pour couvrir la défense',{mental:2,speed:1}],
+          ['Je dirige et replace ma défense',{leadership:3,locker:2,mental:1}]
+        ]
+      },
+      {
+        title:'Jeu au pied du gardien',
+        text:'Relances courtes, longues et sous pression.',
+        choices:[
+          ['Je travaille la relance courte',{tech:2,mental:1}],
+          ['Je travaille les dégagements longs',{physical:1,tech:2,fatigue:3}],
+          ['Je joue sous pressing',{mental:2,tech:1}],
+          ['Je travaille mon mauvais pied',{tech:3,fatigue:4}]
+        ]
+      }
+    ]);
+  }
+
   return pick([
-    {title:'Atelier finition',text:'Frappes, reprises et face-à-face.',choices:[['Je travaille la précision',{tech:2,fatigue:6}],['Je frappe en puissance',{physical:1,tech:1,fatigue:7}],['Je travaille mon mauvais pied',{tech:2,mental:1,fatigue:7}],['Je reste après la séance',{tech:3,fatigue:11,coach:2}]]},
-    {title:'Travail tactique',text:'Déplacements et lecture du jeu.',choices:[['J’écoute toutes les consignes',{mental:2,coach:2}],['Je pose des questions',{mental:2,coach:1}],['Je guide mes coéquipiers',{mental:1,locker:3}],['Je reste passif',{coach:-3,form:-1}]]},
-    {title:'Séance vitesse',text:'Sprints et changements de direction.',choices:[['Je donne tout',{speed:2,fatigue:9}],['Je gère mes efforts',{speed:1,form:5,fatigue:-5,mental:1}],['Je travaille les départs',{speed:2,mental:1,fatigue:7}],['Je demande une série en plus',{speed:3,fatigue:12,coach:2}]]},
-    {title:'Opposition interne',text:'Titulaires contre remplaçants.',choices:[['Je joue simple',{mental:1,coach:2}],['Je tente des gestes difficiles',{tech:2,coach:-1}],['Je presse sans arrêt',{physical:2,fatigue:10}],['Je dirige mon équipe',{mental:2,locker:2}]]},
-    {title:'Le coach te félicite',text:'Il remarque ta bonne forme et ton sérieux.',choices:[['Je le remercie',{coach:3,mental:1}],['Je dis que le travail continue',{coach:4,mental:2}],['Je chambre mes coéquipiers',{locker:1,coach:-1}],['Je reste concentré',{form:2}]]},
-    {title:'Le coach te prévient',text:'Il trouve que tu bavardes trop.',choices:[['Je m’excuse',{coach:2,mental:1}],['Je demande quoi améliorer',{coach:3,mental:2}],['Je dis que tout le monde parle',{coach:-3,locker:1}],['Je recommence l’exercice',{coach:3,fatigue:2}]]}
+    {title:'Atelier finition',text:'Frappes, reprises et face-à-face.',choices:[['Je travaille la précision',{tech:2,fatigue:5}],['Je frappe en puissance',{physical:1,tech:1,fatigue:5}],['Je travaille mon mauvais pied',{tech:2,mental:1,fatigue:5}],['Je reste après la séance',{tech:3,fatigue:7,coach:2}]]},
+    {title:'Travail tactique',text:'Déplacements, occupation des espaces et lecture du jeu.',choices:[['J’écoute toutes les consignes',{mental:2,coach:2}],['Je pose des questions',{mental:2,coach:1}],['Je guide mes coéquipiers',{mental:1,locker:3}],['Je travaille mon placement sans ballon',{mental:2,form:1}]]},
+    {title:'Séance vitesse',text:'Sprints et changements de direction.',choices:[['Je donne tout',{speed:2,fatigue:6}],['Je gère mes efforts',{speed:1,form:4,fatigue:-4,mental:1}],['Je travaille les départs',{speed:2,mental:1,fatigue:5}],['Je demande une série en plus',{speed:3,fatigue:8,coach:2}]]},
+    {title:'Opposition interne',text:'Match d’entraînement avec consignes liées à ton poste.',choices:[['Je joue simple',{mental:1,coach:2}],['Je tente de casser des lignes',{tech:2,coach:1}],['Je travaille le replacement',{physical:1,mental:2,fatigue:5}],['Je dirige mon équipe',{mental:2,locker:2,leadership:1}]]},
+    {title:'Le coach te félicite',text:'Il remarque ta bonne forme et ton sérieux.',choices:[['Je le remercie',{coach:3,mental:1}],['Je dis que le travail continue',{coach:4,mental:2}],['Je félicite aussi le groupe',{locker:2,coach:1}],['Je reste concentré',{form:2}]]},
+    {title:'Le coach te prévient',text:'Il trouve que tu manques de concentration sur certaines séquences.',choices:[['Je m’excuse',{coach:2,mental:1}],['Je demande quoi améliorer',{coach:3,mental:2}],['Je demande une séance vidéo',{mental:2,coach:2}],['Je recommence l’exercice',{coach:3,fatigue:2}]]}
   ]);
 }
 
@@ -1438,182 +1991,204 @@ function preMatchEvent(){
   if(state.season.preMatch!==null) return;
   if(Math.random()>.55){state.season.preMatch=false;return}
 
-  const pool=[
-    {
-      title:'Tu débutes sur le banc',
-      text:'Le coach te demande de rester prêt.',
-      choices:[
-        ['Je respecte son choix',{coach:2,mental:1,forceBench:true}],
-        ['Je demande une explication',{coach:0,forceBench:true}],
-        ['Je râle devant le groupe',{coach:-5,locker:-2,forceBench:true}],
-        ['Je promets de changer le match en entrant',{mental:3,forceBench:true}]
-      ]
-    },
+  const genericBench={
+    title:'Tu débutes sur le banc',
+    text:role()==='GK'
+      ?'Le coach choisit l’autre gardien comme titulaire. Tu dois rester prêt en cas de blessure ou d’expulsion.'
+      :'Le coach te demande de rester prêt pour entrer en cours de rencontre.',
+    choices:[
+      ['Je respecte son choix',{coach:2,mental:1,forceBench:true,gkBench:role()==='GK'}],
+      ['Je demande une explication calmement',{coach:0,mental:1,forceBench:true,gkBench:role()==='GK'}],
+      ['Je râle devant le groupe',{coach:-5,locker:-2,forceBench:true,gkBench:role()==='GK'}],
+      ['Je me prépare comme si j’allais entrer',{mental:3,coach:1,forceBench:true,gkBench:role()==='GK'}]
+    ]
+  };
+
+  if(role()==='GK'){
+    state.season.preMatch=pick([
+      genericBench,
+      {
+        title:'Petite gêne à l’échauffement',
+        text:'Tu sens une légère tension avant la rencontre.',
+        choices:[
+          ['Je préviens immédiatement le staff',{coach:2,fatigue:-4,forceBench:true}],
+          ['Je poursuis prudemment',{mental:1,risk:.035}],
+          ['Je demande un échauffement adapté',{staffRelation:2,form:2}],
+          ['Je préfère ne prendre aucun risque',{fatigue:-8,forceBench:true,coach:1}]
+        ]
+      },
+      {
+        title:'Mission du coach — gardien',
+        text:'Le coach veut que tu commandes ta défense et sois agressif dans tes sorties.',
+        choices:[
+          ['Je joue haut et je sors dès que nécessaire',{speed:1,mental:2,coach:2}],
+          ['Je sécurise d’abord ma ligne et mes prises de balle',{tech:1,mental:2,coach:2}],
+          ['Je parle constamment à ma défense',{leadership:3,locker:2,mental:1}],
+          ['Je prends des risques pour imposer ma présence',{mental:2,physical:1,coach:1}]
+        ]
+      }
+    ]);
+    return;
+  }
+
+  state.season.preMatch=pick([
+    genericBench,
     {
       title:'Petite douleur à l’échauffement',
       text:'Tu sens une gêne musculaire.',
       choices:[
-        ['Je joue quand même',{fatigue:5,risk:.12}],
-        ['Je préviens le coach',{coach:2,forceBench:true,fatigue:-5}],
-        ['Je demande un bandage',{risk:.05,fatigue:2}],
-        ['Je fais un échauffement plus long',{fatigue:4,form:1}]
+        ['Je joue quand même',{fatigue:4,risk:.08}],
+        ['Je préviens le coach',{coach:2,forceBench:true,fatigue:-4}],
+        ['Je demande un bandage',{risk:.035,fatigue:1}],
+        ['Je fais un échauffement plus long',{fatigue:2,form:1}]
       ]
     },
     {
       title:'Le coach te confie une mission',
-      text:'Il veut que tu sois agressif et concentré.',
-      choices:[
-        ['Je lui dis qu’il peut compter sur moi',{coach:3,mental:2}],
-        ['Je demande plus de liberté',{coach:-1,tech:1}],
-        ['Je reste silencieux',{mental:1}],
-        ['Je motive les autres',{locker:3,mental:2}]
-      ]
+      text:role()==='DEF'
+        ?'Il veut que tu protèges la profondeur et gagnes tes duels.'
+        :role()==='MID'
+          ?'Il veut que tu donnes le rythme et trouves les espaces.'
+          :'Il veut que tu attaques la profondeur et sois décisif.',
+      choices:role()==='DEF'
+        ?[
+          ['Je reste concentré sur la profondeur',{mental:2,coach:2}],
+          ['Je vais au duel avec agressivité',{physical:2,coach:1}],
+          ['Je communique avec toute la ligne',{leadership:2,locker:2}],
+          ['Je privilégie une relance propre',{tech:1,mental:1}]
+        ]
+        :role()==='MID'
+          ?[
+            ['Je joue vite entre les lignes',{tech:2,mental:1}],
+            ['Je sécurise la possession',{mental:2,coach:2}],
+            ['Je cherche les passes verticales',{tech:2,coach:1}],
+            ['Je me projette pour frapper',{mental:1,tech:1}]
+          ]
+          :[
+            ['J’attaque la profondeur dès que possible',{speed:2,coach:1}],
+            ['Je décroche pour participer au jeu',{tech:1,mental:2}],
+            ['Je presse le premier relanceur',{physical:1,mental:2}],
+            ['Je me concentre sur la finition',{tech:2,coach:1}]
+          ]
     }
-  ];
-
-  state.season.preMatch=pick(pool);
+  ]);
 }
 
 function matchAction(){
   if(state.season.matchAction) return;
+  const s=state.season;
   const r=role();
+  if(r==='GK' && s.forceBench)s.gkBench=true;
+
+  if(r==='GK' && s.gkBench){
+    if(Math.random()<.24){
+      const minute=rand(20,76);
+      s.gkEntryMinute=minute;
+      s.matchAction={
+        minute,
+        text:'Le gardien titulaire se blesse. Le coach te demande d’entrer immédiatement.',
+        choices:[
+          ['J’entre concentré et je sécurise mes premières prises','mental','leader',{kind:'gkEntry'}],
+          ['Je parle immédiatement à ma défense','mental','leader',{kind:'gkEntry'}],
+          ['Je prends le temps de bien m’échauffer sur la touche','physical','warrior',{kind:'gkEntry'}]
+        ]
+      };
+    }else{
+      s.matchAction=null;
+      s.phase='ready';
+      save();
+    }
+    return;
+  }
 
   const pools={
     GK:[
-      {
-        text:'Face-à-face avec l’attaquant',
-        choices:[
-          ['Je sors vite','physical','warrior'],
-          ['Je reste debout','mental','leader'],
-          ['Je plonge dans ses pieds','speed','warrior'],
-          ['Je réduis l’angle sans me jeter','mental','creator']
-        ]
-      },
-      {
-        text:'Penalty pour l’adversaire',
-        choices:[
-          ['Je plonge à gauche','mental','artist'],
-          ['Je plonge à droite','mental','artist'],
-          ['Je reste au centre','mental','leader'],
-          ['J’attends le dernier instant','mental','creator'],
-          ['J’intimide le tireur','mental','warrior']
-        ]
-      },
-      {
-        text:'Relance après un arrêt',
-        choices:[
-          ['Relance courte au défenseur','tech','creator'],
-          ['Relance rapide à la main','mental','creator'],
-          ['Long dégagement vers l’ailier','physical','warrior'],
-          ['Je temporise pour calmer le jeu','mental','leader']
-        ]
-      }
+      {text:'Face-à-face avec l’attaquant',choices:[
+        ['Je sors vite','physical','warrior',{kind:'gkShot'}],
+        ['Je reste debout','mental','leader',{kind:'gkShot'}],
+        ['Je plonge dans ses pieds','speed','warrior',{kind:'gkShot'}],
+        ['Je réduis l’angle sans me jeter','mental','creator',{kind:'gkShot'}]
+      ]},
+      {text:'Penalty pour l’adversaire',choices:[
+        ['Je plonge à gauche','mental','artist',{kind:'gkPenalty'}],
+        ['Je plonge à droite','mental','artist',{kind:'gkPenalty'}],
+        ['Je reste au centre','mental','leader',{kind:'gkPenalty'}],
+        ['J’attends le dernier instant','mental','creator',{kind:'gkPenalty'}],
+        ['J’intimide le tireur','mental','warrior',{kind:'gkPenalty'}]
+      ]},
+      {text:'Relance après un arrêt',choices:[
+        ['Relance courte au défenseur','tech','creator',{kind:'build'}],
+        ['Relance rapide à la main','mental','creator',{kind:'build'}],
+        ['Long dégagement vers l’ailier','physical','warrior',{kind:'build'}],
+        ['Je temporise pour calmer le jeu','mental','leader',{kind:'safe'}]
+      ]}
     ],
     DEF:[
-      {
-        text:'L’attaquant te provoque en un contre un',
-        choices:[
-          ['Je temporise','mental','leader'],
-          ['Je tacle debout','physical','warrior'],
-          ['Je glisse pour couper le ballon','physical','warrior'],
-          ['Je l’oriente vers la ligne','speed','creator'],
-          ['Je fais une faute tactique','mental','warrior']
-        ]
-      },
-      {
-        text:'Tu récupères le ballon sous pression',
-        choices:[
-          ['Relance courte','tech','creator'],
-          ['Transversale vers l’ailier','tech','creator'],
-          ['Je dégage en touche','physical','warrior'],
-          ['Je monte balle au pied','speed','artist'],
-          ['Je rends au gardien','mental','leader']
-        ]
-      },
-      {
-        text:'Corner adverse dans les dernières minutes',
-        choices:[
-          ['Je prends le meilleur joueur','mental','leader'],
-          ['Je dégage de la tête','physical','warrior'],
-          ['Je laisse le gardien sortir','mental','creator'],
-          ['Je pars en contre dès le dégagement','speed','artist']
-        ]
-      }
+      {text:'L’attaquant te provoque en un contre un près de la surface',choices:[
+        ['Je temporise','mental','leader',{kind:'defDanger'}],
+        ['Je tacle debout','physical','warrior',{kind:'defDanger'}],
+        ['Je glisse pour couper le ballon','physical','warrior',{kind:'defDanger'}],
+        ['Je l’oriente vers la ligne','speed','creator',{kind:'defDanger'}]
+      ]},
+      {text:'Tu récupères le ballon sous pression',choices:[
+        ['Relance courte','tech','creator',{kind:'build'}],
+        ['Transversale vers l’ailier','tech','creator',{kind:'chanceAssist'}],
+        ['Je dégage en touche','physical','warrior',{kind:'safe'}],
+        ['Je monte balle au pied','speed','artist',{kind:'build'}]
+      ]},
+      {text:'Corner adverse dans les dernières minutes',choices:[
+        ['Je prends le meilleur joueur','mental','leader',{kind:'defDanger'}],
+        ['Je dégage de la tête','physical','warrior',{kind:'defDanger'}],
+        ['Je protège la zone du premier poteau','mental','creator',{kind:'defDanger'}],
+        ['Je pars en contre dès le dégagement','speed','artist',{kind:'build'}]
+      ]}
     ],
     MID:[
-      {
-        text:'Tu récupères le ballon dans l’axe',
-        choices:[
-          ['Passe en profondeur sur un pas','tech','creator'],
-          ['Transversale de 40 mètres','tech','creator'],
-          ['Je porte le ballon','speed','artist'],
-          ['Je cherche le coup franc','mental','artist'],
-          ['Je tente la frappe de loin','tech','finisher']
-        ]
-      },
-      {
-        text:'Contre-attaque à trois contre deux',
-        choices:[
-          ['Je décale l’ailier','mental','creator'],
-          ['Je joue dans la profondeur','tech','creator'],
-          ['Je conserve pour attendre du soutien','mental','leader'],
-          ['Je tente seul','speed','artist'],
-          ['Je frappe de 25 mètres','tech','finisher']
-        ]
-      },
-      {
-        text:'Coup franc à 25 mètres',
-        choices:[
-          ['Je centre au second poteau','tech','creator'],
-          ['Je joue vite','mental','creator'],
-          ['Je frappe enroulé','tech','artist'],
-          ['Je frappe en force','physical','finisher'],
-          ['Je laisse le spécialiste tirer','mental','leader']
-        ]
-      }
+      {text:'Tu récupères le ballon dans l’axe',choices:[
+        ['Passe en profondeur sur un pas','tech','creator',{kind:'chanceAssist'}],
+        ['Transversale de 40 mètres','tech','creator',{kind:'build'}],
+        ['Je porte le ballon','speed','artist',{kind:'build'}],
+        ['Je tente la frappe de loin','tech','finisher',{kind:'shot'}]
+      ]},
+      {text:'Contre-attaque à trois contre deux',choices:[
+        ['Je décale l’ailier','mental','creator',{kind:'chanceAssist'}],
+        ['Je joue dans la profondeur','tech','creator',{kind:'chanceAssist'}],
+        ['Je conserve pour attendre du soutien','mental','leader',{kind:'safe'}],
+        ['Je frappe de 25 mètres','tech','finisher',{kind:'shot'}]
+      ]},
+      {text:'Coup franc à 25 mètres',choices:[
+        ['Je centre au second poteau','tech','creator',{kind:'chanceAssist'}],
+        ['Je joue vite','mental','creator',{kind:'build'}],
+        ['Je frappe enroulé','tech','artist',{kind:'shot'}],
+        ['Je frappe en force','physical','finisher',{kind:'shot'}]
+      ]}
     ],
     ATT:[
-      {
-        text:'Tu te retrouves seul face au gardien',
-        choices:[
-          ['Frappe petit filet','tech','finisher'],
-          ['En force sous la barre','physical','finisher'],
-          ['Lob au-dessus du gardien','tech','artist'],
-          ['Dribble le gardien','speed','artist'],
-          ['Passe au coéquipier mieux placé','mental','creator'],
-          ['Frappe croisée première intention','tech','finisher']
-        ]
-      },
-      {
-        text:'Penalty pour ton équipe',
-        choices:[
-          ['Je laisse le spécialiste tirer','mental','leader'],
-          ['Petit filet gauche','tech','finisher'],
-          ['Petit filet droit','tech','finisher'],
-          ['Pleine lucarne','tech','artist'],
-          ['En force plein axe','physical','warrior'],
-          ['Panenka','mental','artist']
-        ]
-      },
-      {
-        text:'Centre venu de la droite',
-        choices:[
-          ['Reprise de volée','tech','artist'],
-          ['Contrôle puis frappe','tech','finisher'],
-          ['Tête décroisée','physical','finisher'],
-          ['Remise pour un coéquipier','mental','creator'],
-          ['Je laisse passer au second poteau','mental','creator']
-        ]
-      }
+      {text:'Tu te retrouves seul face au gardien',choices:[
+        ['Frappe petit filet','tech','finisher',{kind:'shot'}],
+        ['En force sous la barre','physical','finisher',{kind:'shot'}],
+        ['Lob au-dessus du gardien','tech','artist',{kind:'shot'}],
+        ['Dribble le gardien','speed','artist',{kind:'shot'}],
+        ['Passe au coéquipier mieux placé','mental','creator',{kind:'chanceAssist'}]
+      ]},
+      {text:'Penalty pour ton équipe',choices:[
+        ['Petit filet gauche','tech','finisher',{kind:'penaltyShot'}],
+        ['Petit filet droit','tech','finisher',{kind:'penaltyShot'}],
+        ['Pleine lucarne','tech','artist',{kind:'penaltyShot',difficulty:.08}],
+        ['En force plein axe','physical','warrior',{kind:'penaltyShot'}],
+        ['Panenka','mental','artist',{kind:'penaltyShot',difficulty:.12}]
+      ]},
+      {text:'Centre venu de la droite',choices:[
+        ['Reprise de volée','tech','artist',{kind:'shot'}],
+        ['Contrôle puis frappe','tech','finisher',{kind:'shot'}],
+        ['Tête décroisée','physical','finisher',{kind:'shot'}],
+        ['Remise pour un coéquipier','mental','creator',{kind:'chanceAssist'}]
+      ]}
     ]
   };
 
   const action=pick(pools[r]);
-  state.season.matchAction={
-    minute:rand(6,88),
-    text:action.text,
-    choices:action.choices
-  };
+  s.matchAction={minute:rand(6,88),text:action.text,choices:action.choices};
 }
 
 function maybeInjury(source){
@@ -1645,7 +2220,18 @@ function simulateAbsent(reason,recovery=10){
         ?'Seniors régionaux'
         :(p.age===13?'Départemental jeunes':'Régional jeunes'));
 
+    if(stillInAcademy){
+    state.league=makeAcademyLeague(p.academyCountry||'France',p.club);
+    level=state.league.level;
+  }else if(p.pro){
+    state.league=makeProfessionalLeague();
+    level=state.league.level;
+  }else{
     state.league=makeLeague(p.club,level,p.department);
+  }
+
+  p.seasonStartClub=p.club;
+  p.seasonStartLevel=level;
     save();render();return;
   }
 
@@ -1672,110 +2258,142 @@ function simulateAbsent(reason,recovery=10){
 }
 
 function playMatch(){
-  state = normalizeState(state);
-  if(!state) return;
+  state=normalizeState(state);
+  if(!state)return;
 
-  const p = state.player;
-  const m = teamMatch();
+  const p=state.player;
+  const s=state.season;
+  const m=teamMatch();
 
   if(!m){
     alert("Aucun match trouvé pour cette journée. Le calendrier va être reconstruit.");
-    const level = p.national
-      ? 'National jeunes'
-      : p.age >= 18
-        ? 'Seniors régionaux'
-        : p.age === 13
-          ? 'Départemental jeunes'
-          : 'Régional jeunes';
-
-    state.league = makeLeague(p.club, level, p.department);
-    save();
-    render();
-    return;
+    const level=p.national
+      ?'National jeunes'
+      :p.age>=18
+        ?'Seniors régionaux'
+        :p.age===13
+          ?'Départemental jeunes'
+          :'Régional jeunes';
+    state.league=makeLeague(p.club,level,p.department);
+    save();render();return;
   }
 
-  let avg=(p.tech+p.speed+p.physical+p.mental)/4;
-  const compatibility=coachCompatibility();
-  let perf=avg+p.form*.22+p.coach*.18-p.fatigue*.28+
-    compatibility+
-    (state.season.actionBonus||0)+Math.random()*32;
-
-  let starter=perf>=62&&!state.season.forceBench;
-  let note=starter
-    ?(perf<72?5.5+Math.random():perf<90?6.4+Math.random()*1.2:7.7+Math.random()*1.2)
-    :4.8+Math.random()*1.2;
-
-  let g=state.season.actionGoal||0;
-  let as=state.season.actionAssist||0;
-  let saves=0,pen=0;
   const r=role();
+  const avg=(p.tech+p.speed+p.physical+p.mental)/4;
+  const compatibility=coachCompatibility();
+  const perf=avg+p.form*.22+p.coach*.18-p.fatigue*.22+
+    compatibility+(s.actionBonus||0)+Math.random()*30;
 
-  if(starter){
+  let starter=perf>=62&&!s.forceBench;
+  let entered=false;
+  let minutesPlayed=starter?90:0;
+
+  if(r==='GK' && s.gkBench){
+    starter=false;
+    entered=s.gkEntryMinute>0;
+    minutesPlayed=entered?90-s.gkEntryMinute:0;
+  }else if(!starter){
+    entered=Math.random()<.68;
+    minutesPlayed=entered?rand(8,32):0;
+  }
+
+  let note;
+  if(!starter && !entered)note=5.8;
+  else if(perf<72)note=5.5+Math.random();
+  else if(perf<90)note=6.4+Math.random()*1.2;
+  else note=7.7+Math.random()*1.2;
+
+  let g=s.actionGoal||0;
+  let as=s.actionAssist||0;
+  let saves=s.actionSave||0;
+  let pen=s.actionPenaltySaved||0;
+
+  if(starter||entered){
     if(r==='GK'){
-      saves=rand(2,8);pen=Math.random()<.07?1:0;
-      g=Math.max(g,Math.random()<.002?1:0);
-      as=Math.max(as,Math.random()<.008?1:0);
+      saves+=starter?rand(2,7):rand(1,4);
+      if(!pen && Math.random()<.045)pen=1;
     }else if(r==='DEF'){
-      g=Math.max(g,Math.random()<.12?1:0);
-      as=Math.max(as,Math.random()<.20?1:0);
+      g=Math.max(g,Math.random()<.08?1:0);
+      as=Math.max(as,Math.random()<.14?1:0);
     }else if(r==='MID'){
-      g=Math.max(g,Math.random()<.25?1:0);
-      as=Math.max(as,Math.random()<.38?1:0);
-    }else{
-      g=Math.max(g,Math.random()<.48?1:0);
+      g=Math.max(g,Math.random()<.20?1:0);
       as=Math.max(as,Math.random()<.30?1:0);
+    }else{
+      g=Math.max(g,Math.random()<.38?1:0);
+      as=Math.max(as,Math.random()<.24?1:0);
     }
   }
 
-  let teamGoals=Math.max(g,Math.max(0,Math.floor(Math.random()*4*(1+p.form/180-p.fatigue/320))));
-  let oppGoals=r==='GK'&&perf>78?rand(0,1):rand(0,3);
+  let teamGoals=Math.max(
+    s.actionTeamGoal||0,
+    g,
+    Math.max(0,Math.floor(Math.random()*3.4*(1+p.form/220-p.fatigue/420)))
+  );
+
+  let oppGoals;
+  if(r==='GK' && (starter||entered)){
+    oppGoals=perf>78?rand(0,1):rand(0,2);
+  }else{
+    oppGoals=rand(0,3);
+  }
+
+  oppGoals=Math.max(oppGoals,s.actionOpponentGoal||0);
+
   let h=m.home===p.club?teamGoals:oppGoals;
   let a=m.home===p.club?oppGoals:teamGoals;
+
   const finalTeamGoals=m.home===p.club?h:a;
-  if(finalTeamGoals===0){g=0;as=0}else{g=Math.min(g,finalTeamGoals);as=Math.min(as,Math.max(0,finalTeamGoals-g))}
+  if(finalTeamGoals===0){g=0;as=0}
+  else{
+    g=Math.min(g,finalTeamGoals);
+    as=Math.min(as,Math.max(0,finalTeamGoals-g));
+  }
+
   record(m.home,m.away,h,a);
   simulateOthers();
 
   let card='';
-  let cr=Math.random();
-  if(cr<.04){p.cardsWhite++;card='Carton blanc : exclusion temporaire.';note-=.4}
-  else if(cr<.075){p.cardsYellow++;card='Carton jaune.'}
-  else if(cr<.09){p.cardsRed++;p.suspension=1;card='Carton rouge : suspension.';note-=1.1}
-
-  p.matches++;p.goals+=g;p.assists+=as;p.sumRating+=note;
-  if(note>=8)p.motm++;
-  const fatigueBeforeMatch=p.fatigue;
-  let matchFatigue;
-
-  if(!starter){
-    matchFatigue=rand(1,2);
-    p.form=clamp(p.form+1);
-  }else if(r==='GK'){
-    matchFatigue=rand(1,3);
-  }else{
-    matchFatigue=rand(3,6);
+  if((starter||entered) && r!=='GK'){
+    const cr=Math.random();
+    if(cr<.035){p.cardsWhite++;card='Carton blanc : exclusion temporaire.';note-=.4}
+    else if(cr<.065){p.cardsYellow++;card='Carton jaune.'}
+    else if(cr<.075){p.cardsRed++;p.suspension=1;card='Carton rouge : suspension.';note-=1.1}
   }
 
-  if(p.form>=80) matchFatigue=Math.max(0,matchFatigue-2);
-  else if(p.form>=70) matchFatigue=Math.max(1,matchFatigue-1);
+  if(starter||entered){
+    p.matches++;
+    p.seasonMatches=(p.seasonMatches||0)+1;
+    p.goals+=g;
+    p.assists+=as;
+    p.sumRating+=note;
+    if(note>=8)p.motm++;
+  }
 
+  const fatigueBeforeMatch=p.fatigue;
+  let matchFatigue=0;
+  if(starter)matchFatigue=r==='GK'?rand(1,2):rand(3,5);
+  else if(entered)matchFatigue=r==='GK'?1:(minutesPlayed>=25?2:1);
+  if(p.form>=80)matchFatigue=Math.max(0,matchFatigue-1);
   p.fatigue=clamp(p.fatigue+matchFatigue);
 
-  if(r==='GK'){
-    let conceded=m.home===p.club?a:h;
-    p.saves+=saves;p.goalsConceded+=conceded;p.pensSaved+=pen;
+  if(r==='GK' && (starter||entered)){
+    const conceded=m.home===p.club?a:h;
+    p.saves+=saves;
+    p.goalsConceded+=conceded;
+    p.pensSaved+=pen;
     if(conceded===0&&starter)p.cleanSheets++;
   }
 
-  maybeInjury('match');
-  maybeLongInjury();
+  if(starter||entered){maybeInjury('match');maybeLongInjury();}
 
-  state.season.lastResult={
-    home:m.home,away:m.away,h,a,absent:false,starter,note,g,as,saves,pen,card,
-    matchFatigue,fatigueBefore:fatigueBeforeMatch,fatigueAfter:p.fatigue
+  s.lastResult={
+    home:m.home,away:m.away,h,a,absent:false,
+    starter,entered,minutesPlayed,entryMinute:s.gkEntryMinute||0,
+    note,g,as,saves,pen,card,matchFatigue,
+    fatigueBefore:fatigueBeforeMatch,fatigueAfter:p.fatigue
   };
-  state.season.phase='result';
-  log('Match',`${m.home} ${h}-${a} ${m.away}, note ${note.toFixed(1)}.`);
+  s.phase='result';
+  log('Match',`${m.home} ${h}-${a} ${m.away}, ${starter?'titulaire':entered?`entré à la ${s.gkEntryMinute||90-minutesPlayed}e`:'resté sur le banc'}, note ${note.toFixed(1)}.`);
   save();render();
 }
 
@@ -1801,19 +2419,15 @@ function strengthsAndWeaknesses(){
 function opportunities(){
   const p=state.player;
   const list=[];
-
-  if(p.age===13) list.push('Détection au Pôle Espoirs de Castelmaurou');
-  if(p.age===14&&!p.pole) list.push('Tournoi des Violettes au Stadium');
-  if(p.age===15) list.push('Tournoi international de Blanes');
-  if(p.age===16||p.age===17) list.push('Tournoi de Cahors devant des recruteurs');
-  if(p.age===18) list.push('Coupe Gambardella');
-  if(p.age>=18&&state.league.level==='Seniors régionaux') list.push('Épopée possible en Coupe de France');
-  if(p.reputation>=45) list.push('Centre de formation de niveau Ligue 2 possible');
-  if(p.reputation>=65) list.push('Centre de formation ou club de Ligue 1 possible');
-  if(p.age>=18&&p.reputation>=55) list.push(`Sélection avec ${p.nationality}`);
-  if(p.coach<35) list.push('Risque de perdre ta place');
-  if(p.fatigue>75) list.push('Repos conseillé pour éviter une blessure');
-
+  const academy=(p.academyOffers||[]).filter(o=>['active','waiting'].includes(o.status));
+  if(academy.length){academy.forEach(o=>list.push(`${o.club} (${o.tier==='ELITE'?'Élite':o.tier}) te propose concrètement son centre de formation.`));}
+  else{
+    if(p.age===13)list.push('Détection au Pôle Espoirs de Castelmaurou');
+    if(p.age>=14&&p.age<=17)list.push('Aucune offre concrète actuellement : continue à performer pour attirer des recruteurs.');
+  }
+  if(p.age>=18&&p.reputation>=55)list.push(`Sélection avec ${p.nationality} possible selon tes performances.`);
+  if(p.coach<35)list.push('Risque réel de perdre ta place dans le onze.');
+  if(p.fatigue>(role()==='GK'?82:75))list.push('Récupération conseillée avant le prochain match.');
   return list;
 }
 
@@ -1939,12 +2553,26 @@ function coupeDeFrance(){
 
 
 function awardSeason(){
-  const p=state.player,aw=[];
-  if(role()==='GK'){if(p.cleanSheets>=6||rating()>=7.4)aw.push('🧤 Gant d’Or')}
-  else{if(p.goals>=12)aw.push('⚽ Soulier d’Or');if(p.assists>=9)aw.push('🎯 Meilleur passeur');if(p.goals>=10)aw.push('🏅 Meilleur buteur')}
-  if(rating()>=7.8)aw.push('⭐ Joueur de la saison');
-  if(p.pro&&p.reputation>=82&&rating()>=8)aw.push('🏆 Ballon d’Or');
-  aw.forEach(x=>{if(!p.awards.includes(x))p.awards.push(x)});p.seasonAwards=aw;return aw;
+  const p=state.player;
+  const aw=[];
+  const club=p.seasonStartClub||p.club;
+  const level=p.seasonStartLevel||state.league.level;
+  const avg=rating();
+  function addAward(label,reason){
+    const text=`${label} — ${p.age} ans — ${club} — ${level}`;
+    aw.push(text);
+    if(!p.awards.includes(text))p.awards.push(text);
+    p.awardDetails.push({age:p.age,club,level,label,reason,matches:p.matches,rating:avg.toFixed(1),goals:p.goals,assists:p.assists,saves:p.saves,cleanSheets:p.cleanSheets,goalsConceded:p.goalsConceded,pensSaved:p.pensSaved});
+  }
+  if(role()==='GK'){
+    if(p.matches>=6 && (p.cleanSheets>=6 || avg>=7.4))addAward('🧤 Gant d’Or',`${p.cleanSheets} clean sheet(s), ${p.saves} arrêt(s), ${p.goalsConceded} but(s) encaissé(s), ${p.pensSaved} penalty(s) arrêté(s), note ${avg.toFixed(1)}.`);
+  }else{
+    if(p.goals>=12)addAward('⚽ Soulier d’Or',`${p.goals} buts.`);
+    if(p.assists>=9)addAward('🎯 Meilleur passeur',`${p.assists} passes décisives.`);
+  }
+  if(p.matches>=6 && avg>=7.8)addAward('⭐ Joueur de la saison',`Note moyenne ${avg.toFixed(1)} sur ${p.matches} matchs.`);
+  if(p.pro&&p.reputation>=82&&avg>=8)addAward('🏆 Ballon d’Or',`Réputation ${p.reputation}/100 et note moyenne ${avg.toFixed(1)}.`);
+  p.seasonAwards=aw;return aw;
 }
 function decideCareerPath(){
   const p=state.player;if(p.age<18||p.pro||p.amateur)return '';
@@ -2017,13 +2645,10 @@ function maybeChangeCoach(){
   const place=sortedTable().findIndex(t=>t.name===p.club)+1;
   if(place>=8)chance+=.10;
   if(p.pro)chance+=.03;
-
   if(Math.random()>=chance)return '';
 
   const previous=p.coachProfile;
-  const candidates=COACH_PROFILES.filter(c=>!previous||c.name!==previous.name);
-  const next=pick(candidates);
-
+  const next=coachForClub(p.club,previous?.name||'');
   p.coachProfile=next;
   p.coachTenure=0;
   p.coachChanges++;
@@ -2090,19 +2715,32 @@ function assignProLeague(){
   const p=state.player;
   if(!p.pro)return;
 
-  if(p.proLeague && PRO_LEAGUES[p.proLeague])return;
+  for(const [league,data] of Object.entries(PRO_LEAGUES)){
+    if(data.clubs.includes(p.club)){
+      p.proLeague=league;
+      p.clubPrestige=data.prestige;
+      p.currentCountry=data.country;
+      return;
+    }
+  }
+
+  if(p.proLeague&&PRO_LEAGUES[p.proLeague])return;
 
   let candidates=Object.entries(PRO_LEAGUES)
-    .filter(([name,data])=>data.prestige<=Math.max(68,p.reputation+18));
+    .filter(([name,data])=>
+      !['Saudi Pro League','Qatar Stars League','MLS','Jupiler Pro League','Chinese Super League'].includes(name) &&
+      data.prestige<=Math.max(68,p.reputation+18)
+    );
 
   if(!candidates.length)candidates=[['Ligue 2',PRO_LEAGUES['Ligue 2']]];
-
   const [league,data]=pick(candidates);
   p.proLeague=league;
   p.clubPrestige=data.prestige;
+  p.currentCountry=data.country;
 
   if(!data.clubs.includes(p.club)){
-    p.club=pick(data.clubs);
+    const target=pick(data.clubs);
+    changeClubCareer(target,'Affectation professionnelle');
     if(p.contract)p.contract.club=p.club;
   }
 
@@ -2194,6 +2832,11 @@ function rehabilitationStep(){
   p.injury='';
   p.returnPhase='Apte';
   p.form=clamp(p.form+8);
+  if(p.academyLanguage && p.academyLanguage!=='Français'){
+    p.languages=p.languages||{Français:100};
+    p.languages[p.academyLanguage]=clamp((p.languages[p.academyLanguage]||15)+rand(12,22));
+    p.mental=clamp(p.mental+1);
+  }
   p.coach=clamp(p.coach+2);
   return 'Tu es officiellement apte à rejouer.';
 }
@@ -2371,26 +3014,41 @@ function chooseAgent(id){
 
 function generateMarketOffers(){
   const p=state.player;
+
+  if(p.age>=31&&p.pro){
+    const late=generateLateCareerOffers();
+    if(late.length){
+      p.offers=late;
+      p.marketMessage=`${late.length} offre(s) de fin de carrière : argent, temps de jeu ou nouvelle expérience.`;
+      log('Mercato fin de carrière',p.marketMessage);
+      return;
+    }
+  }
+
   const max=Math.min(4,1+(p.agent.level||0));
   let count=rand(0,max);
-  if(p.reputation>=70 && count===0) count=1;
+  if(p.reputation>=70&&count===0)count=1;
   p.offers=[];
 
+  const standardLeagues=Object.entries(PRO_LEAGUES)
+    .filter(([name])=>!['Saudi Pro League','Qatar Stars League','MLS','Jupiler Pro League','Chinese Super League'].includes(name));
+
   for(let i=0;i<count;i++){
-    const eligible=PRO_LEVELS.filter(x=>p.reputation>=x.min-15);
-    const level=eligible.length?pick(eligible):PRO_LEVELS[0];
-    const loan=Math.random()<.28 && p.age<=25;
+    const eligible=standardLeagues.filter(([name,data])=>
+      data.prestige<=Math.max(65,p.reputation+18+(p.internationalExperience||0)*.08)
+    );
+    const [leagueName,leagueData]=eligible.length?pick(eligible):['Ligue 2',PRO_LEAGUES['Ligue 2']];
+    const loan=Math.random()<.28&&p.age<=25;
+
     p.offers.push({
       id:`o${Date.now()}${i}${rand(10,99)}`,
-      club:pick(level.clubs),level:level.name,
-      years:pick([2,3]),
-      monthly:rand(1800,15000),
-      signingBonus:rand(3000,45000),
+      club:pick(leagueData.clubs),level:leagueName,country:leagueData.country,
+      years:pick([2,3]),monthly:rand(1800,15000),signingBonus:rand(3000,45000),
       role:pick(['Remplaçant','Rotation','Titulaire potentiel','Titulaire']),
-      loan,purchaseOption:loan&&Math.random()<.55,
-      status:'active',countered:false
+      loan,purchaseOption:loan&&Math.random()<.55,status:'active',countered:false
     });
   }
+
   p.marketMessage=p.offers.length?`${p.offers.length} offre(s) reçue(s).`:'Aucune offre reçue.';
   log('Mercato',p.marketMessage);
 }
@@ -2401,15 +3059,25 @@ function acceptMarketOffer(id){
   const old=p.club;
   if(o.loan){
     p.loan={parentClub:old,loanClub:o.club,remaining:1,purchaseOption:o.purchaseOption,monthly:o.monthly};
-    p.club=o.club;
+    changeClubCareer(o.club,'Prêt');
     p.marketMessage=`Prêt accepté à ${o.club}${o.purchaseOption?' avec option d’achat':''}.`;
   }else{
-    p.club=o.club;
+    changeClubCareer(o.club,'Transfert');
     p.contract={club:o.club,years:o.years,remaining:o.years,monthly:o.monthly,signingBonus:o.signingBonus,role:o.role};
     p.balance+=o.signingBonus;p.totalIncome+=o.signingBonus;p.freeAgent=false;
     p.marketMessage=`Contrat signé à ${o.club} pour ${o.years} ans.`;
   }
-  p.transferHistory.push({age:p.age,from:old,to:p.club,type:o.loan?'Prêt':'Transfert'});
+  if(o.level&&PRO_LEAGUES[o.level]){
+    p.proLeague=o.level;
+    p.clubPrestige=PRO_LEAGUES[o.level].prestige;
+    p.currentCountry=PRO_LEAGUES[o.level].country;
+  }
+
+  if(p.currentCountry&&p.currentCountry!=='France'){
+    p.internationalExperience=clamp((p.internationalExperience||0)+3);
+    p.maturity=clamp((p.maturity||25)+1);
+  }
+
   p.offers.forEach(x=>x.status=x.id===id?'accepted':'withdrawn');
   log('Signature',p.marketMessage);
 }
@@ -2486,8 +3154,7 @@ function runRegionalTrial(i){
 function signRegionalTrial(i){
   const p=state.player,t=p.clubTrials[i];
   if(!t||t.status!=='accepted')return;
-  const old=p.club;p.club=t.name;
-  p.transferHistory.push({age:p.age,from:old,to:p.club,type:'Mutation régionale'});
+  const old=p.club;changeClubCareer(t.name,'Mutation régionale');
   p.regionalDecisionPending=false;p.licenseRenewed=true;
   p.marketMessage=`Tu signes ta licence à ${p.club}.`;
 }
@@ -2510,13 +3177,29 @@ function processLoanEnd(){
     p.balance+=p.contract.signingBonus;p.totalIncome+=p.contract.signingBonus;p.loan=null;
     return `${l.loanClub} lève l’option d’achat.`;
   }
-  p.club=l.parentClub;p.loan=null;
+  changeClubCareer(l.parentClub,'Retour de prêt');p.loan=null;
   return `Fin du prêt : retour à ${p.club}.`;
 }
 
-function annualFinances(){const p=state.player;let income=0,expenses=0;if(p.pro&&p.contract){income=p.contract.monthly*12;expenses=Math.round(income*(p.agent.commission||0)/100)+rand(6000,18000)}else if(p.amateur){income=rand(0,4000);expenses=rand(1500,6000)}else expenses=rand(300,1500);p.balance+=income-expenses;p.totalIncome+=income;p.totalExpenses+=expenses;return{income,expenses}}
+function annualFinances(){
+  const p=state.player;
+  let income=0,expenses=0;
+  if(p.contract && Number(p.contract.monthly)>0){
+    income=Number(p.contract.monthly)*12;
+    expenses=Math.round(income*(Number(p.agent?.commission)||0)/100);
+  }
+  p.balance+=income-expenses;p.totalIncome+=income;p.totalExpenses+=expenses;
+  return{income,expenses};
+}
 function endSeason(){
   if(state.season.seasonProcessed) return;
+  (state.player.academyOffers||[]).forEach(o=>{
+    if(o.status==='waiting'&&o.moment==='mi'&&Math.random()<.28){
+      o.status='withdrawn';
+      o.message=`${o.club} a finalement recruté un autre joueur et retire son offre.`;
+      log('Offre retirée',o.message);
+    }
+  });
   state.season.seasonProcessed=true;
   const p=state.player;
   const place=sortedTable().findIndex(t=>t.name===p.club)+1;
@@ -2533,7 +3216,7 @@ function endSeason(){
     p.poleAttempted=true;
     const score=((p.tech+p.speed+p.physical+p.mental)/4)*.45+p.potential*.18+p.mental*.12+p.coach*.10+Math.max(0,rating()-5)*4+Math.random()*14;
     p.poleScore=Math.round(score);
-    if(score>=83){p.pole=true;p.national=true;p.poleStatus='Retenu parmi les 23';p.club='Pôle Espoirs de Castelmaurou';state.season.special=`Retenu parmi les 23 joueurs. Évaluation : ${p.poleScore}/100.`}
+    if(score>=83){p.pole=true;p.national=true;p.poleStatus='Retenu parmi les 23';changeClubCareer('Pôle Espoirs de Castelmaurou','Entrée au Pôle Espoirs');state.season.special=`Retenu parmi les 23 joueurs. Évaluation : ${p.poleScore}/100.`}
     else if(score>=72){p.pole=false;p.poleStatus='Attention : doit progresser';state.season.special=`Attention, doit progresser. Évaluation : ${p.poleScore}/100. Retour en régional.`;state.season.regionalClubChoice=true}
     else{p.pole=false;p.poleStatus='Non retenu';state.season.special=`Non retenu. Évaluation : ${p.poleScore}/100. Choisis un club régional.`;state.season.regionalClubChoice=true}
     extras.push(state.season.special);log('Castelmaurou',state.season.special);
@@ -2554,12 +3237,9 @@ function endSeason(){
     p.reputation=clamp(p.reputation+(perf>=88?12:perf>=74?7:perf>=62?3:1));
 
     if(perf>=74){
-      const eligible=PRO_LEVELS.filter(x=>p.reputation>=x.min);
-      if(eligible.length){
-        const lev=eligible[eligible.length-1],club=pick(lev.clubs);
-        p.academy=`${club} - Centre de formation`;
-        p.club=p.academy;p.national=true;
-        text+=` Un recruteur de ${club} te fait signer en centre de formation (${lev.name}).`;
+      const offers=generateAcademyOffers('fin');
+      if(offers.length){
+        text+=` ${offers.length} club(s) te font une proposition concrète. Aucun changement n’est automatique : tu dois choisir.`;
       }
     }
     extras.push(text);
@@ -2595,7 +3275,10 @@ function endSeason(){
 
   const loanResult=processLoanEnd();if(loanResult){extras.push(loanResult);log('Prêt',loanResult)}
 
-  const awards=awardSeason();if(awards.length)extras.push('Récompenses : '+awards.join(', '));const pathDecision=decideCareerPath();if(pathDecision)extras.push(pathDecision);if(p.pro&&p.contract){p.contract.remaining--;if(p.contract.remaining<=1){const offers=generateOffers();extras.push(offers.length?`${offers.length} proposition(s) reçue(s).`:'Aucune proposition reçue.')}}if(p.age>=18&&p.amateur&&!p.licenseRenewed)p.regionalDecisionPending=true;
+  const awards=awardSeason();
+  if(awards.length)extras.push('Récompenses : '+awards.join(', '));
+  const academyOffers=generateAcademyOffers('fin');
+  if(academyOffers.length)extras.push(`${academyOffers.length} proposition(s) concrète(s) de centre de formation : décision à prendre.`);const pathDecision=decideCareerPath();if(pathDecision)extras.push(pathDecision);if(p.pro&&p.contract){p.contract.remaining--;if(p.contract.remaining<=1){const offers=generateOffers();extras.push(offers.length?`${offers.length} proposition(s) reçue(s).`:'Aucune proposition reçue.')}}if(p.age>=18&&p.amateur&&!p.licenseRenewed)p.regionalDecisionPending=true;
   const finance=annualFinances();extras.push(`Finances : +${finance.income.toLocaleString('fr-FR')} € / -${finance.expenses.toLocaleString('fr-FR')} €.`);const intl=internationalCompetition();
   if(intl){extras.push(intl);log('Sélection',intl)}
 
@@ -2604,8 +3287,12 @@ function endSeason(){
   state.season.endReport=reportHTML('Bilan de fin de saison');
   state.season.endExtras=extras.join('<br><br>');
   p.history.push({
-    age:p.age,club:p.club,level:state.league.level,matches:p.matches,
-    goals:p.goals,assists:p.assists,rating:rating().toFixed(1),place
+    age:p.age,
+    club:p.seasonStartClub||p.club,
+    level:p.seasonStartLevel||state.league.level,
+    matches:p.matches,
+    goals:p.goals,assists:p.assists,
+    rating:rating().toFixed(1),place
   });
 
   log('Bilan de saison',`Place ${place}/10, réputation +${gain}.`);
@@ -2622,18 +3309,36 @@ function nextSeason(){
     weekEvent:null,trainingEvent:null,preMatch:null,matchAction:null,
     lastResult:null,absenceReason:'',seasonProcessed:false,
     midReportDone:false,endReport:null,midReport:null,preseasonDone:false,
-    forceBench:false,actionBonus:0,actionGoal:0,actionAssist:0,lastActionMessage:'',regionalClubChoice:false
+    forceBench:false,actionBonus:0,actionGoal:0,actionAssist:0,actionOpponentGoal:0,actionSave:0,actionPenaltySaved:0,actionTeamGoal:0,gkBench:false,gkEntryMinute:0,lastActionMessage:'',regionalClubChoice:false
   };
 
+  const stillInAcademy = Boolean(p.academy && p.academy!=='Aucun' && p.age<=18);
   let level=p.pro
     ?'Championnat professionnel'
-    :(p.age>=18
-      ?'Seniors régionaux'
-      :(p.national?'National jeunes':'Régional jeunes'));
+    :(stillInAcademy
+      ?(YOUTH_LEAGUES_BY_COUNTRY[p.academyCountry||'France']?.level||'National jeunes')
+      :(p.age>=18
+        ?'Seniors régionaux'
+        :(p.national?'National jeunes':'Régional jeunes')));
 
+  if(isAbroad()){
+    p.maturity=clamp((p.maturity||25)+rand(2,4));
+    p.internationalExperience=clamp((p.internationalExperience||0)+rand(3,6));
+    p.adaptation=clamp((p.adaptation||50)+rand(7,14));
+    p.homeSickness=clamp((p.homeSickness||0)-rand(5,12));
+    const lang=p.academyLanguage;
+    if(lang&&lang!=='Français'){
+      p.languages=p.languages||{Français:100};
+      p.languages[lang]=clamp((p.languages[lang]||15)+rand(10,18));
+    }
+  }
+
+  p.seasonMatches=0;
   p.fatigue=clamp(p.fatigue-30);
   p.form=clamp(p.form+8);
   state.league=makeLeague(p.club,level,p.department);
+  p.seasonStartClub=p.club;
+  p.seasonStartLevel=level;
   state.competitions={
     active:competitionIdsForPlayer(p).map(createCompetition),
     calendar:[],
@@ -2668,6 +3373,13 @@ function resetWeek(){
   s.actionBonus = 0;
   s.actionGoal = 0;
   s.actionAssist = 0;
+  s.actionOpponentGoal = 0;
+  s.actionSave = 0;
+  s.actionPenaltySaved = 0;
+  s.actionTeamGoal = 0;
+  s.gkBench = false;
+  s.gkEntryMinute = 0;
+  s.lastActionMessage = '';
   s.restDecision = false;
 
   if(p.suspension > 0) p.suspension--;
@@ -2677,6 +3389,7 @@ function resetWeek(){
   p.fatigue=clamp(p.fatigue-naturalRecovery-staffBonus.recovery);
 
   if(s.round === 10 && !s.midReportDone){
+    generateAcademyOffers('mi');
     s.midReport = reportHTML('Bilan de mi-saison');
     s.midReportDone = true;
     s.phase = 'midReport';
@@ -2699,17 +3412,24 @@ function renderHeader(){
 
 function renderPerformance(r){
   const p=state.player;
-  let x=`Statut : ${r.starter?'Titulaire':'Remplaçant'}<br>Note : ${r.note.toFixed(1)}/10`;
+  const status=r.starter
+    ?'Titulaire'
+    :r.entered
+      ?`Remplaçant entré${r.entryMinute?` à la ${r.entryMinute}e minute`:''}`
+      :'Remplaçant non entré';
+
+  let x=`Statut : ${status}<br>Note : ${r.note.toFixed(1)}/10`;
+  if(r.entered||r.starter)x+=`<br>Minutes jouées : ${r.minutesPlayed||90}`;
 
   if(role()==='GK'){
-    x+=`<br>Arrêts : ${r.saves}<br>Buts encaissés : ${r.home===p.club?r.a:r.h}<br>Penalty arrêté : ${r.pen?'Oui':'Non'}`;
+    x+=`<br>Arrêts : ${r.saves||0}<br>Buts encaissés : ${r.home===p.club?r.a:r.h}<br>Penalty arrêté : ${r.pen?'Oui':'Non'}`;
   }else{
-    x+=`<br>Buts : ${r.g}<br>Passes décisives : ${r.as}`;
+    x+=`<br>Buts : ${r.g||0}<br>Passes décisives : ${r.as||0}`;
   }
 
   if(r.card)x+=`<br>${r.card}`;
-  x+=`<br>Fatigue gagnée : +${r.matchFatigue||0}`;
-  if(!r.starter)x+=`<br>Comme remplaçant, tu récupères mieux.`;
+  x+=`<br>Fatigue après le match : +${r.matchFatigue||0}`;
+  if(!r.starter&&!r.entered)x+=`<br>Tu es resté sur le banc : aucune fatigue de match.`;
   return x;
 }
 
@@ -2787,6 +3507,7 @@ function renderWeek(){
       ${s.endReport||''}
       ${s.endExtras?`<div class="card"><h2>Compétitions et opportunités</h2><div class="message">${s.endExtras}</div></div>`:''}
       ${s.regionalClubChoice?`<div class="card"><h2>Choisis ton club régional</h2>${['EFCV Verfeil','FC Girou','FC Lauragais',"L'Union Saint-Jean",'FC Lavaur'].map(c=>`<button data-act="regionalClub" data-club="${c}">${c}</button>`).join('')}</div>`:''}
+      ${academyOffersHTML()}
       <div class="card"><h2>Classement final</h2>${tableHTML()}
       <button data-act="nextSeason">Saison suivante</button></div>`;
     return;
@@ -2799,23 +3520,17 @@ function renderWeek(){
       <p><strong>Cette préparation se déroule avant la 1re journée et avant ton premier match.</strong></p>
       <p>Choisis une seule préparation. Certains stages exigent un niveau minimum.</p>
       ${options.map((o,i)=>`
-        <button type="button" data-preseason-index="${i}">
+        <button type="button" data-act="preseasonChoice" data-i="${i}">
           ${o.name}${o.admitted?'':' — candidature incertaine'}
         </button>
         <div class="muted">${o.desc}</div>`).join('')}
     </div>`;
 
-    box.querySelectorAll('[data-preseason-index]').forEach(button=>{
-      button.addEventListener('click',()=>{
-        handlePreseasonChoice(Number(button.dataset.preseasonIndex));
-      });
-    });
-
     return;
   }
 
   if(s.phase==='midReport'){
-    box.innerHTML=`${s.midReport}<div class="card"><button data-act="continueMid">Continuer la saison</button></div>`;
+    box.innerHTML=`${s.midReport}${academyOffersHTML()}<div class="card"><button data-act="continueMid">Continuer la saison</button></div>`;
     return;
   }
 
@@ -2914,6 +3629,7 @@ function renderWeek(){
 
   if(s.phase==='action'){
     matchAction();
+    if(s.phase==='ready' || !s.matchAction){save();render();return;}
     const a=s.matchAction;
     box.innerHTML=`<div class="card choice">
       ${s.lastActionMessage?`<div class="message">${s.lastActionMessage}</div>`:''}
@@ -2927,10 +3643,12 @@ function renderWeek(){
 
   if(s.phase==='ready'){
     const actionFeedback=s.lastActionMessage?`<div class="message">${s.lastActionMessage}</div>`:'';
-    if((p.fatigue>=50||p.form<=60)&&!s.restDecision){
+    const fatigueLimit=role()==='GK'?82:72;
+    const formLimit=role()==='GK'?42:45;
+    if((p.fatigue>=fatigueLimit||p.form<=formLimit)&&!s.restDecision){
       box.innerHTML=`<div class="card">${actionFeedback}
         <h2>État physique à surveiller</h2>
-        <p>Fatigue : ${Math.round(p.fatigue)} — Forme : ${Math.round(p.form)}. Tu peux demander à ne pas être retenu et récupérer 25 points.</p>
+        <p>Fatigue : ${Math.round(p.fatigue)} — Forme : ${Math.round(p.form)}. Tu peux demander à ne pas être retenu pour récupérer. Cette option reste exceptionnelle, surtout pour un gardien.</p>
         <button data-act="rest">Je demande à ne pas être retenu</button>
         <button class="secondary" data-act="playTired">Je joue quand même</button>
       </div>`;
@@ -2981,7 +3699,7 @@ function renderTabs(){
       <p>Réputation : ${p.reputation}/100</p>
       <p>Profil à 18 ans : <strong>${p.profile}</strong></p>
       <p>Rôle dans le groupe : <strong>${p.captain?'Capitaine':p.viceCaptain?'Vice-capitaine':'Joueur'}</strong></p>
-      <p>Entraîneur : <strong>${p.coachProfile?.name||'Non défini'}</strong></p>
+      <p>Entraîneur : <strong>${p.coachProfile?.name||'Non défini'}</strong> — ${p.coachProfile?.style||''}</p>
       ${role()==='GK'
         ?`<p>Arrêts : ${p.saves}</p><p>Clean sheets : ${p.cleanSheets}</p><p>Penalties arrêtés : ${p.pensSaved}</p><p>Buts encaissés : ${p.goalsConceded}</p>`
         :`<p>Buts : ${p.goals}</p><p>Passes : ${p.assists}</p>`}
@@ -2999,11 +3717,18 @@ function renderTabs(){
   $('tab-future').innerHTML=`<div class="card"><h2>Avenir</h2>
     ${statLine('Réputation',p.reputation)}
     ${statLine('Potentiel',p.potential)}
+    ${statLine('Maturité',p.maturity||25)}
+    ${statLine('Expérience internationale',p.internationalExperience||0)}
+    ${isAbroad()?statLine('Adaptation au pays',p.adaptation||0):''}
+    ${isAbroad()?statLine('Mal du pays',p.homeSickness||0):''}
     <p>Nationalité : <strong>${p.nationality}${p.secondNationality?' / '+p.secondNationality:''}</strong></p>
     <p>Sélection : <strong>${p.internationalTeam}</strong></p>
     <p>Matchs internationaux : <strong>${p.internationalCaps}</strong></p>
     <p>Pôle Castelmaurou : <strong>${p.pole?'Retenu':p.poleAttempted?'Non retenu':'À venir'}</strong></p>
     <p>Centre de formation : <strong>${p.academy}</strong></p>
+    ${p.academyLanguage&&p.academyLanguage!=='Français'
+      ?`<p>Langue d’intégration : <strong>${p.academyLanguage} ${Math.round(p.languages?.[p.academyLanguage]||0)}/100</strong></p>`
+      :''}
     ${p.pro?`<p>Championnat professionnel : <strong>${p.proLeague}</strong></p><p>Statut international : <strong>${p.nationalStatus}</strong></p>`:''}
     <p>Niveau actuel : <strong>${state.league.level}</strong></p>
     ${state.league.level==='Seniors régionaux'?`<p>Statut : <strong>Football amateur</strong></p><p>Popularité locale : <strong>${Math.round((p.reputation+p.locker+p.president)/3)}/100</strong></p>`:''}
@@ -3011,7 +3736,7 @@ function renderTabs(){
     <p>Titres : ${p.titles.join(', ')||'Aucun'}</p>
   </div>`;
 
-  $('tab-honours').innerHTML=`<div class="card"><h2>🏆 Palmarès</h2><p>Parcours : <strong>${p.careerPath}</strong></p><h3>Titres</h3>${p.titles.length?p.titles.map(x=>`<div class="trophy">${x}</div>`).join(''):'<p>Aucun titre.</p>'}<h3>Récompenses</h3>${p.awards.length?p.awards.map(x=>`<div class="trophy">${x}</div>`).join(''):'<p>Aucune récompense.</p>'}<h3>Historique</h3>${p.history.length?p.history.map(h=>`<div class="journal">${h.age} ans — ${h.club} — ${h.level} — note ${h.rating}</div>`).join(''):'<p>Aucune saison terminée.</p>'}</div>`;
+  $('tab-honours').innerHTML=`<div class="card"><h2>🏆 Palmarès</h2><p>Parcours : <strong>${p.careerPath}</strong></p><h3>Titres</h3>${p.titles.length?p.titles.map(x=>`<div class="trophy">${x}</div>`).join(''):'<p>Aucun titre.</p>'}<h3>Récompenses</h3>${p.awardDetails.length?p.awardDetails.map(x=>`<div class="trophy"><strong>${x.label}</strong><br>${x.age} ans — ${x.club} — ${x.level}<br><span class="muted">${x.reason}</span></div>`).join(''):(p.awards.length?p.awards.map(x=>`<div class="trophy">${x}</div>`).join(''):'<p>Aucune récompense.</p>')}<h3>Historique</h3>${p.history.length?p.history.map(h=>`<div class="journal">${h.age} ans — ${h.club} — ${h.level} — note ${h.rating}</div>`).join(''):'<p>Aucune saison terminée.</p>'}</div>`;
   $('tab-money').innerHTML=`<div class="card"><h2>💰 Finances</h2><p class="money">Solde : ${Math.round(p.balance).toLocaleString('fr-FR')} €</p><p>Revenus cumulés : ${Math.round(p.totalIncome).toLocaleString('fr-FR')} €</p><p>Dépenses cumulées : ${Math.round(p.totalExpenses).toLocaleString('fr-FR')} €</p><p>Agent : ${p.agent.name} — commission ${p.agent.commission}%</p>${p.contract?`<h3>Contrat</h3><p>${p.contract.club} — ${p.contract.remaining} an(s)</p><p>${p.contract.monthly.toLocaleString('fr-FR')} €/mois — ${p.contract.role}</p>`:'<p>Aucun contrat professionnel.</p>'}${p.offers.length?`<h3>Propositions</h3>${p.offers.map(o=>`<div class="trophy">${o.club} — ${o.years} ans — ${o.monthly.toLocaleString('fr-FR')} €/mois${o.loan?' — prêt'+(o.purchaseOption?' avec option d’achat':' sans option'):''}</div>`).join('')}`:''}</div>`;
 
 
@@ -3039,7 +3764,8 @@ function renderTabs(){
     `:''}
 
     ${activeOffers.length?`<h3>Propositions</h3>${activeOffers.map(o=>`<div class="trophy">
-      <strong>${o.club}</strong> — ${o.level}<br>
+      <strong>${o.club}</strong> — ${o.level}${o.country?` (${o.country})`:''}<br>
+      ${o.motive?`<span class="muted">${o.motive}</span><br>`:''}
       ${o.loan?`Prêt ${o.purchaseOption?'avec option d’achat':'sans option d’achat'}`:`${o.years} ans — ${o.monthly.toLocaleString('fr-FR')} €/mois — prime ${o.signingBonus.toLocaleString('fr-FR')} €`}<br>
       Rôle : ${o.role}
       <button data-act="acceptOffer" data-id="${o.id}">Accepter</button>
@@ -3341,6 +4067,7 @@ document.addEventListener('click',e=>{
   else if(a==='preChoice'){
     const c=s.preMatch.choices[+b.dataset.i];
     apply(c[1]);
+    if(c[1].gkBench)s.gkBench=true;
     if(c[1].risk&&Math.random()<c[1].risk)maybeInjury('match');
   maybeLongInjury();
     log(s.preMatch.title,`Choix : ${c[0]}`);
@@ -3350,29 +4077,45 @@ document.addEventListener('click',e=>{
   else if(a==='actionChoice'){
     const ac=s.matchAction;
     const choice=ac.choices[+b.dataset.i];
-    const stat=choice[1],style=choice[2];
+    const stat=choice[1],style=choice[2],meta=choice[3]||{kind:'build'};
 
     p.styleCounters[style]=(p.styleCounters[style]||0)+1;
 
-    let success=.45+(p[stat]-50)/120;
-    if(choice[0].includes('Panenka')) success-=.10;
-    if(choice[0].includes('Pleine lucarne')) success-=.08;
-    if(choice[0].includes('faute tactique')) success=.70;
-
-    const ok=Math.random()<clamp(success,.12,.88);
+    let success=.46+(p[stat]-50)/115;
+    if(meta.difficulty)success-=meta.difficulty;
+    const ok=Math.random()<clamp(success,.12,.90);
     s.actionBonus=ok?8:-4;
 
-    if(ok&&role()==='ATT'){
-      if(choice[0].includes('Passe'))s.actionAssist=1;
-      else if(!choice[0].includes('laisse'))s.actionGoal=Math.random()<.62?1:0;
+    let feedback=ok?`✅ Tu réussis : ${choice[0]}.`:`❌ Tu rates : ${choice[0]}.`;
+
+    if(meta.kind==='gkEntry'){
+      s.gkBench=false;
+      feedback+=` Tu entres à la ${ac.minute}e minute après la blessure du titulaire.`;
+      if(!ok)s.actionBonus=-2;
+    }else if(meta.kind==='gkPenalty'){
+      if(ok){s.actionPenaltySaved=1;s.actionSave+=1;feedback+=' 🧤 PENALTY ARRÊTÉ ! Le score ne change pas.';}
+      else{s.actionOpponentGoal+=1;feedback+=' ⚽ Le penalty est marqué : but adverse.';}
+    }else if(meta.kind==='gkShot'){
+      if(ok){s.actionSave+=1;feedback+=' 🧤 Arrêt décisif, le score ne change pas.';}
+      else{s.actionOpponentGoal+=1;feedback+=' ⚽ Tu es battu : but adverse.';}
+    }else if(meta.kind==='defDanger'){
+      if(ok)feedback+=' Tu éteins l’occasion adverse.';
+      else if(Math.random()<.48){s.actionOpponentGoal+=1;feedback+=' ⚽ Ton échec conduit à un but adverse.';}
+      else feedback+=' L’adversaire se crée une grosse occasion mais ne marque pas.';
+    }else if(meta.kind==='shot'||meta.kind==='penaltyShot'){
+      if(ok){s.actionGoal=1;s.actionTeamGoal=Math.max(s.actionTeamGoal,1);feedback+=' ⚽ BUT ! Cette réussite comptera dans le score et ta fiche.';}
+      else feedback+=' La tentative ne finit pas au fond.';
+    }else if(meta.kind==='chanceAssist'){
+      if(ok&&Math.random()<.58){s.actionAssist=1;s.actionTeamGoal=Math.max(s.actionTeamGoal,1);feedback+=' 🎯 Ta passe crée le but : passe décisive.';}
+      else if(ok)feedback+=' Ta passe crée une occasion, mais ton coéquipier ne marque pas.';
+      else feedback+=' Le ballon est perdu avant l’occasion.';
+    }else if(meta.kind==='build'){
+      feedback+=ok?' L’action aide ton équipe à progresser.':' Ton équipe doit se replacer.';
     }
 
-    if(ok&&role()==='MID'){
-      if(choice[0].includes('Passe')||choice[0].includes('Transversale')||choice[0].includes('profondeur'))s.actionAssist=Math.random()<.45?1:0;
-      if(choice[0].includes('frappe'))s.actionGoal=Math.random()<.28?1:0;
-    }
-
-    let feedback=ok?`✅ Tu réussis : ${choice[0]}.`:`❌ Tu rates : ${choice[0]}.`; if(ok&&s.actionGoal)feedback+=' Tu marques !'; if(ok&&s.actionAssist)feedback+=' Ta passe devient décisive.'; if(!ok&&choice[0].includes('Passe'))feedback+=' Le ballon est intercepté.'; s.lastActionMessage=feedback; log(`${ac.minute}e minute`,feedback); s.phase='ready';save();render();
+    s.lastActionMessage=feedback;
+    log(`${ac.minute}e minute`,feedback);
+    s.phase='ready';save();render();
   }
 
   else if(a==='rest'){
@@ -3411,7 +4154,10 @@ document.addEventListener('click',e=>{
     s.phase='life';save();render();
   }
 
-  else if(a==='regionalClub'){p.club=b.dataset.club;p.national=false;s.regionalClubChoice=false;log('Nouveau club régional',`Tu rejoins ${p.club}.`);save();render()}
+  else if(a==='regionalClub'){
+    changeClubCareer(b.dataset.club,'Nouveau club régional');
+    p.national=false;s.regionalClubChoice=false;save();render();
+  }
   else if(a==='hotelChoice'){
     const c=s.weekEvent.choices[+b.dataset.i];
     apply(c[1]);
@@ -3428,6 +4174,9 @@ document.addEventListener('click',e=>{
     save();render();
   }
 
+  else if(a==='academyAccept'){acceptAcademyOffer(b.dataset.id);save();render()}
+  else if(a==='academyWait'){waitAcademyOffer(b.dataset.id);save();render()}
+  else if(a==='academyReject'){rejectAcademyOffer(b.dataset.id);save();render()}
   else if(a==='agent'){chooseAgent(b.dataset.id);save();render()}
   else if(a==='offers'){generateMarketOffers();save();render()}
   else if(a==='acceptOffer'){acceptMarketOffer(b.dataset.id);save();render()}
@@ -3467,6 +4216,8 @@ document.addEventListener('click',e=>{
   }
 
   else if(a==='nextSeason'){
+    const pendingAcademy=(p.academyOffers||[]).some(o=>o.status==='active');
+    if(pendingAcademy){alert('Décide d’abord pour les propositions de centre : accepter, demander un délai ou refuser.');return}
     if(s.regionalClubChoice){alert('Choisis d’abord ton club régional.');return}
     if(p.age>=18&&p.amateur&&p.regionalDecisionPending&&!p.licenseRenewed){
       alert('Décide d’abord où tu prends ta licence dans l’onglet Mercato.');return
