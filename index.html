@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.1 — LES COMPÉTITIONS</title>
+<title>TCROMA ACADEMY V4.1.2 — LES COMPÉTITIONS</title>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#06140d;--card:#10291b;--card2:#183b27;--line:#2b5a3c;--txt:#f5fbf7;--muted:#b7cbbc;--gold:#f4cb47;--red:#8c3434;--green:#2bb768;--blue:#3674c8}
@@ -38,9 +38,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.1 — LES COMPÉTITIONS</h1>
+    <h1>⚽ TCROMA ACADEMY V4.1.2 — LES COMPÉTITIONS</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
-    <p>De 13 ans aux seniors : championnat, coupes, tirages, exploits et finales.</p><p class="muted">Version 4.1 — Les Compétitions</p>
+    <p>De 13 ans aux seniors : championnat, coupes, tirages, exploits et finales.</p><p class="muted">Version 4.1.1 — Les Compétitions</p>
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
   </div>
@@ -144,8 +144,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV41';
-const LEGACY_SAVE_KEYS = ['tcromaAcademyV34'];
+const SAVE_KEY = 'tcromaAcademyV412';
+const LEGACY_SAVE_KEYS = ['tcromaAcademyV411','tcromaAcademyV41','tcromaAcademyV34'];
 
 const REGIONAL = [
   'EFCV Verfeil','FC Girou',"L'Union Saint-Jean",'FC Lauragais',
@@ -895,6 +895,17 @@ function normalizeState(data){
   s.actionGoal = Number(s.actionGoal) || 0;
   s.actionAssist = Number(s.actionAssist) || 0;
   s.restDecision = Boolean(s.restDecision);
+  /*
+    Correctif V4.1.2 :
+    une ancienne sauvegarde peut arriver en phase "preseason"
+    alors que la saison a déjà commencé. Dans ce cas, on saute
+    automatiquement la préparation.
+  */
+  if(s.phase==='preseason' && s.round>1){
+    s.preseasonDone=true;
+    s.phase='life';
+  }
+
   s.activeCompetitionId=s.activeCompetitionId||'';
   s.lastCompetitionResult=s.lastCompetitionResult||null;
   if(!data.competitions||!Array.isArray(data.competitions.active)){
@@ -2660,13 +2671,21 @@ function renderWeek(){
     const options=preseasonOptions();
     box.innerHTML=`<div class="card choice">
       <h2>☀️ Préparation d’avant-saison</h2>
+      <p><strong>Cette préparation se déroule avant la 1re journée et avant ton premier match.</strong></p>
       <p>Choisis une seule préparation. Certains stages exigent un niveau minimum.</p>
       ${options.map((o,i)=>`
-        <button data-act="preseasonChoice" data-i="${i}">
+        <button type="button" data-preseason-index="${i}">
           ${o.name}${o.admitted?'':' — candidature incertaine'}
         </button>
         <div class="muted">${o.desc}</div>`).join('')}
     </div>`;
+
+    box.querySelectorAll('[data-preseason-index]').forEach(button=>{
+      button.addEventListener('click',()=>{
+        handlePreseasonChoice(Number(button.dataset.preseasonIndex));
+      });
+    });
+
     return;
   }
 
@@ -3030,6 +3049,84 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   );
 });
 
+
+function handlePreseasonChoice(index){
+  if(!state){
+    alert("Aucune carrière active.");
+    return;
+  }
+
+  state=normalizeState(state);
+
+  const option=preseasonOptions()[Number(index)];
+  if(!option){
+    alert("Préparation introuvable.");
+    return;
+  }
+
+  const p=state.player;
+  const s=state.season;
+
+  /*
+    Les candidatures incertaines ne sont plus refusées automatiquement.
+    Leur chance dépend du niveau moyen, de l'âge et de la réputation.
+  */
+  if(!option.admitted){
+    const average=(p.tech+p.speed+p.physical+p.mental)/4;
+    const chance=clamp(
+      .18 + (average-45)/110 + p.reputation/220 + Math.max(0,p.age-13)*.025,
+      .12,
+      .72
+    );
+
+    if(Math.random()>=chance){
+      log(
+        'Candidature refusée',
+        `${option.name} : candidature non retenue cette année.`
+      );
+      alert(
+        `Candidature non retenue pour ${option.name}. ` +
+        `Tu dois choisir une autre préparation.`
+      );
+      save();
+      render();
+      return;
+    }
+
+    log(
+      'Candidature acceptée',
+      `${option.name} : tu es retenu malgré une candidature incertaine.`
+    );
+  }
+
+  p.seasonStartStats={
+    tech:p.tech,
+    speed:p.speed,
+    physical:p.physical,
+    mental:p.mental
+  };
+
+  apply(option.effects);
+
+  log(
+    'Préparation estivale',
+    `${option.name}, avant la première journée de championnat.`
+  );
+
+  s.preseasonDone=true;
+  s.round=1;
+  s.phase='life';
+
+  save();
+  render();
+}
+
+/* Compatibilité avec d'anciens appels éventuels. */
+function choosePreseason(index){
+  handlePreseasonChoice(index);
+}
+
+
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');
   if(!b || !state) return;
@@ -3049,17 +3146,7 @@ document.addEventListener('click',e=>{
   const s = state.season;
 
   if(a==='preseasonChoice'){
-    const option=preseasonOptions()[+b.dataset.i];
-    if(!option.admitted){
-      log('Candidature refusée',`${option.name} : ton niveau actuel n’est pas suffisant.`);
-      alert('Ta candidature n’est pas retenue cette année.');
-      return;
-    }
-
-    p.seasonStartStats={tech:p.tech,speed:p.speed,physical:p.physical,mental:p.mental};
-    apply(option.effects);
-    log('Préparation estivale',option.name);
-    s.phase='life';s.preseasonDone=true;save();render();
+    handlePreseasonChoice(+b.dataset.i);
   }
 
   else if(a==='lifeChoice'){
