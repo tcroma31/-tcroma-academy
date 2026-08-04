@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.2.4 — HOTFIX PRÉPARATION 18 ANS</title>
+<title>TCROMA ACADEMY V4.2.5 — PRÉPARATION MOBILE SÉCURISÉE</title>
 
 <style>
 *{box-sizing:border-box}
@@ -17,6 +17,16 @@ button{width:100%;padding:13px 15px;margin-top:10px;border:0;border-radius:12px;
 button.secondary{background:var(--card2);border:1px solid var(--line);color:var(--txt)}
 button.danger{background:var(--red);color:white}
 button.blue{background:var(--blue);color:white}
+.native-choice{
+  display:block;width:100%;padding:13px 15px;margin-top:10px;
+  border:0;border-radius:12px;background:var(--gold);
+  font-weight:800;font-size:16px;cursor:pointer;color:#171307;
+  text-decoration:none;text-align:center;
+}
+.native-choice.secondary{
+  background:var(--card2);border:1px solid var(--line);color:var(--txt);
+}
+
 input,select{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:#081a10;color:var(--txt);font-size:16px;margin-top:6px}
 label{display:block;margin-top:13px;color:var(--muted)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -39,10 +49,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.2.4 — HOTFIX PRÉPARATION 18 ANS</h1>
+    <h1>⚽ TCROMA ACADEMY V4.2.5 — PRÉPARATION MOBILE SÉCURISÉE</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
     <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
-    <p class="muted">Version 4.2.4 — Hotfix préparation 18 ans</p>
+    <p class="muted">Version 4.2.5 — Préparation mobile sécurisée</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -161,8 +171,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV424';
+const SAVE_KEY = 'tcromaAcademyV425';
 const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV424',
   'tcromaAcademyV423',
   'tcromaAcademyV422',
   'tcromaAcademyV421',
@@ -1498,603 +1509,43 @@ function normalizeState(data){
   }
 
   if(s.phase==='preseason'){
-    s.preseasonDone=false;
-    s.weekEvent=null;
-    s.trainingEvent=null;
-    s.preMatch=null;
-    s.matchAction=null;
-    s.lastActionMessage='';
-  }
+    const opts=preseasonOptions();
 
-  if(s.phase==='preseason' && s.round>1){
-    s.preseasonDone=true;
-    s.phase='life';
-  }
+    box.innerHTML=`<div class="card">
+      <h2>☀️ Préparation d’avant-saison</h2>
+      <p class="muted">
+        Choisis ton programme avant le premier match.
+        Le choix recharge volontairement la page pour être fiable sur téléphone.
+      </p>
 
-  s.activeCompetitionId=s.activeCompetitionId||'';
-  s.lastCompetitionResult=s.lastCompetitionResult||null;
-  if(!data.competitions||!Array.isArray(data.competitions.active)){
-    data.competitions={active:[],calendar:[],trophies:[],records:[]};
-  }
+      ${opts.map((o,i)=>`
+        <div class="trophy">
+          <strong>${o.name}</strong><br>
+          <span class="muted">${o.desc}</span>
+          <a
+            class="native-choice"
+            href="?tcromaPreseason=${i}"
+          >
+            Choisir cette préparation
+          </a>
+        </div>
+      `).join('')}
 
-  if(!data.league || !Array.isArray(data.league.table) || !Array.isArray(data.league.schedule)){
-    const level = p.national
-      ? 'National jeunes'
-      : p.age >= 18
-        ? 'Seniors régionaux'
-        : p.age === 13
-          ? 'Départemental jeunes'
-          : 'Régional jeunes';
+      <div class="trophy">
+        <strong>🛟 Déblocage de secours</strong><br>
+        <span class="muted">
+          Si ton téléphone bloque encore les choix, utilise ceci :
+          la préparation individuelle sera appliquée et la saison commencera.
+        </span>
+        <a
+          class="native-choice secondary"
+          href="?tcromaPreseason=default"
+        >
+          Commencer la saison avec préparation individuelle
+        </a>
+      </div>
+    </div>`;
 
-    data.league = makeLeague(p.club, level, p.department);
-  }
-
-  return data;
-}
-
-function log(title,text){
-  state.season.journal.unshift({
-    title,text,age:state.player.age,round:state.season.round
-  });
-  state.season.journal = state.season.journal.slice(0,100);
-}
-
-function freshTeam(name){
-  return {name,played:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
-}
-
-function schedule(clubs){
-  let rot=[...clubs], first=[];
-  for(let r=0;r<clubs.length-1;r++){
-    let games=[];
-    for(let i=0;i<clubs.length/2;i++){
-      let a=rot[i], b=rot[clubs.length-1-i];
-      games.push(r%2 ? {home:b,away:a} : {home:a,away:b});
-    }
-    first.push(games);
-    rot=[rot[0],rot[rot.length-1],...rot.slice(1,-1)];
-  }
-  return [...first,...first.map(day=>day.map(g=>({home:g.away,away:g.home})))];
-}
-
-function makeLeague(club,level,department='Haute-Garonne'){
-  let clubs;
-
-  if(level==='National jeunes'){
-    clubs=[...NATIONAL];
-    if(!clubs.includes(club)) clubs[0]=club;
-  }else if(level==='Championnat professionnel'){
-    const proClubs=[
-      'Toulouse FC','Montpellier HSC','Rodez AF','Pau FC','AS Monaco',
-      'Lille OSC','Bordeaux','Nîmes','Guingamp','Grenoble'
-    ];
-    clubs=[club,...proClubs.filter(c=>c!==club)].slice(0,10);
-  }else if(level==='Seniors régionaux'){
-    clubs=[club,...SENIOR_REGIONAL.filter(c=>c!==club)].slice(0,10);
-  }else if(level==='Départemental jeunes'){
-    const departmentClubs =
-      DEPARTMENT_CLUBS[department] ||
-      DEPARTMENT_CLUBS['Haute-Garonne'];
-
-    clubs=[club,...departmentClubs.filter(c=>c!==club)].slice(0,10);
-  }else{
-    clubs=[club,...REGIONAL.filter(c=>c!==club)].slice(0,10);
-  }
-
-  return {
-    level,
-    department,
-    clubs,
-    table:clubs.map(freshTeam),
-    schedule:schedule(clubs)
-  };
-}
-
-function newState(first,last,pos,club,nationality,secondNationality,department){
-  const p={
-    first,last,pos,club,nationality,secondNationality,department,
-    age:13,tech:rand(42,56),speed:rand(42,56),
-    physical:rand(42,56),mental:rand(42,56),
-    fatigue:10,form:65,coach:50,morale:60,reputation:0,
-    potential:rand(72,92),school:55,parents:65,locker:50,president:50,
-    injuryWeeks:0,injury:'',suspension:0,cardsWhite:0,cardsYellow:0,cardsRed:0,
-    matches:0,goals:0,assists:0,motm:0,sumRating:0,
-    saves:0,cleanSheets:0,pensSaved:0,goalsConceded:0,
-    pole:false,poleAttempted:false,national:false,academy:'Aucun',
-    titles:[],tournaments:[],history:[],
-    internationalTeam:'Aucune',internationalCaps:0,internationalGoals:0,
-    profile:'Non défini',
-    styleCounters:{creator:0,warrior:0,artist:0,finisher:0,leader:0},
-    seasonStartStats:null,seasonStartClub:club,seasonStartLevel:'Départemental jeunes',currentClubSinceAge:13,academySinceAge:null,academyOffers:[],languages:{Français:100},awardDetails:[],maturity:25,internationalExperience:0,adaptation:60,homeSickness:0,seasonMatches:0,currentCountry:'France',careerPath:'Jeunes',pro:false,latePro:false,amateur:false,contract:null,offers:[],agent:{name:'Famille',level:0,commission:0},balance:0,totalIncome:0,totalExpenses:0,awards:[],honours:[],seasonAwards:[],poleStatus:'À venir',poleScore:0
-  };
-
-  return {
-    player:p,
-    season:{
-      round:1,phase:'preseason',journal:[],weekEvent:null,trainingEvent:null,
-      preMatch:null,matchAction:null,lastResult:null,absenceReason:'',
-      seasonProcessed:false,midReportDone:false,endReport:null,midReport:null,
-      preseasonDone:false,forceBench:false,actionBonus:0,
-      actionGoal:0,actionAssist:0,actionOpponentGoal:0,actionSave:0,actionPenaltySaved:0,actionTeamGoal:0,gkBench:false,gkEntryMinute:0,lastActionMessage:'',regionalClubChoice:false
-    },
-    league:makeLeague(club,'Départemental jeunes',department),
-    competitions:{active:[],calendar:[],trophies:[],records:[]}
-
-  };
-}
-
-function rating(){
-  return state.player.matches ? state.player.sumRating/state.player.matches : 0;
-}
-
-function role(){
-  const p=state.player.pos;
-  if(p==='Gardien') return 'GK';
-  if(p.includes('Défenseur')||p.includes('Latéral')) return 'DEF';
-  if(p.includes('Milieu')||p==='Meneur de jeu') return 'MID';
-  return 'ATT';
-}
-
-function teamMatch(){
-  if(!state || !state.player || !state.season || !state.league) return null;
-
-  const round = Math.max(1, Number(state.season.round) || 1);
-  const day = state.league.schedule?.[round - 1];
-
-  if(!Array.isArray(day)) return null;
-
-  return day.find(
-    g => g.home === state.player.club || g.away === state.player.club
-  ) || null;
-}
-
-function updateTeam(name,gf,ga){
-  const t=state.league.table.find(x=>x.name===name);
-  if(!t) return;
-  t.played++; t.gf+=gf; t.ga+=ga;
-  if(gf>ga){t.w++;t.pts+=3}
-  else if(gf===ga){t.d++;t.pts++}
-  else t.l++;
-}
-
-function record(home,away,h,a){
-  updateTeam(home,h,a);
-  updateTeam(away,a,h);
-}
-
-function simulateOthers(){
-  for(const g of state.league.schedule[state.season.round-1]||[]){
-    if(g.home===state.player.club||g.away===state.player.club) continue;
-    record(g.home,g.away,rand(0,3),rand(0,3));
-  }
-}
-
-function sortedTable(){
-  return [...state.league.table].sort(
-    (a,b)=>b.pts-a.pts||((b.gf-b.ga)-(a.gf-a.ga))||b.gf-a.gf
-  );
-}
-
-function tableHTML(){
-  return `<table>
-    <thead><tr><th>Club</th><th>J</th><th>Pts</th><th>Diff.</th></tr></thead>
-    <tbody>${sortedTable().map((t,i)=>`
-      <tr class="${t.name===state.player.club?'mine':''}">
-        <td>${i+1}. ${t.name}</td><td>${t.played}</td>
-        <td>${t.pts}</td><td>${t.gf-t.ga}</td>
-      </tr>`).join('')}
-    </tbody>
-  </table>`;
-}
-
-function statLine(label,v){
-  return `<div class="stat"><span>${label}</span>
-    <div class="bar"><span style="width:${clamp(v)}%"></span></div>
-    <strong>${Math.round(v)}</strong></div>`;
-}
-
-function apply(effects){
-  for(const [k,rawValue] of Object.entries(effects||{})){
-    let v=rawValue;
-
-    if(k==='fatigue' && v>0){
-      const form=state.player.form||50;
-      const formFactor=form>=80?.38:form>=70?.46:form>=60?.54:.64;
-      const roleFactor=role()==='GK'?.48:.72;
-      v=Math.max(1,Math.ceil(v*formFactor*roleFactor));
-    }
-
-    if(['tech','speed','physical','mental','fatigue','form','coach','morale',
-        'reputation','school','parents','locker','president','leadership',
-        'friendship','rivalry','staffRelation','injuryProtection',
-        'maturity','internationalExperience','adaptation','homeSickness'].includes(k)){
-      state.player[k]=clamp((state.player[k]||0)+v);
-    }else if(k==='languageGain'){
-      const lang=state.player.academyLanguage;
-      if(lang&&lang!=='Français'){
-        state.player.languages=state.player.languages||{Français:100};
-        state.player.languages[lang]=clamp((state.player.languages[lang]||0)+v);
-      }
-    }else if(k==='returnFranceRequest'){
-      if(v)requestReturnToFrance();
-    }else{
-      state.season[k]=v;
-    }
-  }
-}
-
-function preseasonOptions(){
-  const p=state.player;
-  if(p.age>=18){
-    return [
-      {name:'Coach personnel',desc:'Travail ciblé avec un préparateur individuel.',admitted:true,effects:{tech:2,speed:2,physical:2,fatigue:8,form:4}},
-      {name:'Préparation individuelle',desc:'Course, ballon et musculation en autonomie.',admitted:true,effects:{physical:2,mental:2,fatigue:5,form:5}},
-      {name:'Plage et soleil',desc:'Tu récupères et reviens à 100 %.',admitted:true,effects:{fatigue:-100,morale:12,form:35}},
-      {name:'Tu flânes sans programme',desc:'Repos total, mais retour avec peu de rythme.',admitted:true,effects:{fatigue:-100,morale:8,form:-6,coach:-2}}
-    ];
-  }
-  return [
-    {name:'Préparation avec ton père',desc:'Footings, frappes et conduite de balle.',admitted:true,effects:{tech:1,mental:2,parents:4,fatigue:5}},
-    {name:'Coach personnel',desc:'Travail individualisé sur tes points faibles.',admitted:true,effects:{tech:2,speed:2,physical:1,fatigue:7}},
-    {name:'Stage VFC à Castelmaurou',desc:'Stage exigeant avec tests et oppositions.',admitted:(p.tech+p.speed+p.physical+p.mental)/4>=54,effects:{tech:2,physical:2,mental:2,fatigue:8,reputation:2}},
-    {name:'Stage Jean-Michel Larqué à Bordeaux',desc:'Vision et qualité de passe.',admitted:p.tech>=56||p.reputation>=14,effects:{tech:3,mental:3,fatigue:7,reputation:2}},
-    {name:'Académie Hidalgo à Cannes',desc:'Technique individuelle et préparation physique.',admitted:p.reputation>=20||p.age>=15,effects:{tech:2,speed:2,physical:2,fatigue:8,reputation:3}},
-    {name:'PSG Academy',desc:'Très haut niveau, admission difficile.',admitted:p.reputation>=40&&p.tech>=65,effects:{tech:4,speed:2,mental:2,fatigue:9,reputation:6}},
-    {name:'Vacances et repos',desc:'Tu reviens totalement reposé et en pleine forme.',admitted:true,effects:{fatigue:-100,morale:10,form:35}},
-    {name:'Tu flânes tout l’été',desc:'Tu récupères, mais sans vraie préparation.',admitted:true,effects:{fatigue:-100,morale:7,form:-5,coach:-2}}
-  ];
-}
-
-
-const AMATEUR_DERBIES = [
-  {clubs:['EFCV Verfeil','FC Lauragais'],name:'Derby du Lauragais'},
-  {clubs:['FC Girou',"L'Union Saint-Jean"],name:'Derby de l’Est toulousain'},
-  {clubs:['FC Lavaur','Albi Marssac'],name:'Derby tarnais'},
-  {clubs:['Balma SC','Castanet'],name:'Derby métropolitain'}
-];
-
-const AMATEUR_EVENTS = [
-  {
-    title:'Les poteaux ont disparu',
-    text:'Le matin du derby, les poteaux du terrain ont mystérieusement été sciés. Le président cherche une solution.',
-    choices:[
-      ['J’aide à installer des buts provisoires',{reputation:4,locker:3,fatigue:2}],
-      ['Je filme pour les réseaux sociaux',{reputation:2,president:-2}],
-      ['Je reste concentré au vestiaire',{mental:2}],
-      ['Je demande le report du match',{president:-1,morale:1}]
-    ]
-  },
-  {
-    title:'Synthétique libre, herbe détrempée',
-    text:'Il pleut depuis trois jours, mais le coach veut jouer sur l’herbe.',
-    choices:[
-      ['Je respecte la décision',{coach:2,mental:1}],
-      ['Je propose calmement le synthétique',{mental:2,coach:0}],
-      ['Je critique devant tout le monde',{coach:-5,locker:1,forceBench:true}],
-      ['Je prépare les crampons vissés',{physical:1,mental:1}]
-    ]
-  },
-  {
-    title:'Prime de victoire très amateur',
-    text:'Le président promet saucisse-frites et deux boissons en cas de victoire.',
-    choices:[
-      ['Je motive tout le vestiaire',{locker:4,morale:4}],
-      ['Je demande une vraie prime',{president:-4,reputation:-1}],
-      ['Je plaisante avec le président',{president:2,locker:2}],
-      ['Je reste concentré sur le match',{mental:2}]
-    ]
-  },
-  {
-    title:'Les maillots sont au local',
-    text:'À trente minutes du coup d’envoi, personne n’a pris le sac de maillots.',
-    choices:[
-      ['Je retourne les chercher',{reputation:3,fatigue:2}],
-      ['J’appelle un bénévole',{president:1}],
-      ['Je laisse les dirigeants gérer',{morale:-1}],
-      ['Je propose de jouer avec les chasubles',{locker:2,morale:2}]
-    ]
-  },
-  {
-    title:'Le car tombe en panne',
-    text:'Le minibus s’arrête sur le bord de la route avant un déplacement.',
-    choices:[
-      ['J’organise les voitures',{reputation:4,locker:4,mental:2}],
-      ['J’attends les dirigeants',{morale:-1}],
-      ['Je pars avec trois coéquipiers',{locker:2,fatigue:1}],
-      ['Je demande le report',{president:-2,coach:-1}]
-    ]
-  },
-  {
-    title:'Le chien traverse le terrain',
-    text:'Un chien échappe à son propriétaire et interrompt le derby.',
-    choices:[
-      ['Je l’attrape doucement',{reputation:3,morale:3}],
-      ['Je plaisante avec les supporters',{locker:2,morale:2}],
-      ['Je reste concentré',{mental:2}],
-      ['Je demande à l’arbitre de reprendre vite',{coach:1}]
-    ]
-  },
-  {
-    title:'Nouveau coach en seniors',
-    text:'Le nouveau coach annonce que personne n’est titulaire d’avance.',
-    choices:[
-      ['Je travaille encore plus',{mental:3,form:3,fatigue:2}],
-      ['Je demande son projet de jeu',{coach:2,mental:1}],
-      ['Je reste méfiant',{morale:-1}],
-      ['Je lui dis que je veux être un leader',{coach:1,locker:2,mental:2}]
-    ]
-  }
-];
-
-function amateurEvent(){
-  return pick(AMATEUR_EVENTS);
-}
-
-function currentDerby(){
-  const m=teamMatch();
-  if(!m)return null;
-  return AMATEUR_DERBIES.find(d=>d.clubs.includes(m.home)&&d.clubs.includes(m.away))||null;
-}
-
-function ageEventPool(){
-  const a=state.player.age;
-
-  if(isAbroad() && a<=21 && Math.random()<0.48){
-    return [foreignAdaptationEvent()];
-  }
-
-  if(a>=15 && Math.random()<0.38){
-    return [immersionEventPool()];
-  }
-
-  if(state.player.pro && a>=18 && Math.random()<0.48){
-    return [pressConference()];
-  }
-
-  if(a<=14) return [
-    {
-      title:'Contrôle demain',
-      text:'Ta mère insiste pour que tu révises avant le foot.',
-      choices:[
-        ['Je révise puis je vais au foot',{school:3,fatigue:3,mental:1}],
-        ['Je vais directement au foot',{school:-2,coach:2,parents:-2}],
-        ['Je reste réviser toute la soirée',{school:5,coach:-2,skipTraining:true}],
-        ['Je promets de réviser après',{school:1,parents:1,fatigue:2}]
-      ]
-    },
-    {
-      title:'Ton père finit tard',
-      text:'Il ne peut pas t’emmener à l’entraînement.',
-      choices:[
-        ['Je demande à un coéquipier de m’emmener',{locker:2,coach:1}],
-        ['Je prends le vélo',{fatigue:5,mental:2}],
-        ['Je manque la séance',{coach:-5,form:-2,skipTraining:true}],
-        ['J’appelle le coach pour prévenir',{coach:-1,mental:1,skipTraining:true}]
-      ]
-    },
-    {
-      title:'Pluie battante',
-      text:'Le terrain est détrempé, mais le coach maintient la séance.',
-      choices:[
-        ['J’y vais sans discuter',{mental:2,physical:1,fatigue:5}],
-        ['Je demande si la séance est vraiment maintenue',{coach:0}],
-        ['Je reste au chaud',{coach:-4,morale:2,skipTraining:true}],
-        ['Je m’équipe pour la pluie et j’y vais',{mental:2,coach:2,fatigue:3}]
-      ]
-    }
-  ];
-
-  if(a<=17) return [
-    {
-      title:'Soirée d’anniversaire',
-      text:'Des amis t’invitent à un anniversaire la veille du match.',
-      choices:[
-        ['Je refuse pour le foot',{mental:2,coach:2,morale:-1}],
-        ['J’y vais mais je rentre tôt',{morale:3,fatigue:3}],
-        ['Je reste tard malgré le match',{morale:5,fatigue:9,coach:-3}],
-        ['Je passe seulement une heure',{morale:2,fatigue:1}]
-      ]
-    },
-    {
-      title:'Sortie avec les coéquipiers',
-      text:'Le groupe propose un cinéma et un repas en début de soirée.',
-      choices:[
-        ['Je viens et je rentre tôt',{locker:3,morale:3,fatigue:2}],
-        ['Je préfère récupérer à la maison',{form:3,fatigue:-4}],
-        ['Je viens seulement au repas',{locker:2,morale:2,fatigue:1}],
-        ['Je reste plus longtemps que prévu',{locker:2,morale:3,fatigue:6,coach:-1}]
-      ]
-    },
-    {
-      title:'Copine ou entraînement',
-      text:'Ta copine veut te voir exactement pendant la séance.',
-      choices:[
-        ['Je vais à l’entraînement',{coach:3,mental:1,morale:-2}],
-        ['Je la vois après',{morale:2,fatigue:2}],
-        ['Je manque la séance',{morale:5,coach:-5,skipTraining:true}],
-        ['Je lui propose de venir au match',{morale:3,reputation:1}]
-      ]
-    }
-  ];
-
-  if(a>=18 && Math.random()<.28){
-    return [{
-      title:'Sortie en boîte',
-      text:'Tes amis insistent pour sortir après la semaine d’entraînement.',
-      choices:[
-        ['Je refuse',{mental:2,form:2}],
-        ['J’y vais mais je rentre tôt',{morale:3,fatigue:4}],
-        ['Je fais toute la nuit',{morale:6,fatigue:13,coach:-5,reputation:-2}],
-        ['Je passe une heure puis je rentre',{morale:2,fatigue:2}]
-      ]
-    }];
-  }
-
-  if(Math.random()<0.60) return [amateurEvent()];
-
-  return [
-    {
-      title:'Déplacement senior compliqué',
-      text:'Le minibus tombe en panne à une heure du coup d’envoi.',
-      choices:[
-        ['J’organise les voitures',{reputation:3,locker:4,mental:2}],
-        ['J’attends les dirigeants',{morale:-1}],
-        ['Je propose de reporter',{president:-2,coach:-1}],
-        ['Je pars avec deux coéquipiers',{locker:2,fatigue:2}]
-      ]
-    },
-    {
-      title:'Prime saucisse-frites',
-      text:'Le président annonce une prime de victoire très régionale.',
-      choices:[
-        ['Je motive tout le monde',{locker:4,morale:4}],
-        ['Je demande une vraie prime',{president:-5,reputation:-2}],
-        ['Je plaisante avec le président',{locker:2,president:1}],
-        ['Je reste concentré',{mental:2}]
-      ]
-    },
-    {
-      title:'Terrain en herbe sous le déluge',
-      text:'Le synthétique est libre, mais le coach choisit l’herbe.',
-      choices:[
-        ['Je respecte sa décision',{coach:1,fatigue:3}],
-        ['Je propose le synthétique calmement',{mental:1,coach:0}],
-        ['Je critique devant le groupe',{coach:-5,locker:1,forceBench:true}],
-        ['Je prépare mes crampons longs',{mental:2,physical:1}]
-      ]
-    }
-  ];
-}
-
-function createWeekEvent(){
-  if(state.season.weekEvent) return;
-  if(Math.random()<0.68) state.season.weekEvent=pick(ageEventPool());
-}
-
-function trainingEvent(){
-  const p=state.player;
-  const fatigueAlert=role()==='GK'?82:72;
-  const lowForm=role()==='GK'?42:45;
-
-  if(p.fatigue>=fatigueAlert || p.form<=lowForm){
-    return {
-      title:'⚠️ Le coach surveille ton état',
-      text:`Fatigue ${Math.round(p.fatigue)} / Forme ${Math.round(p.form)}.`,
-      choices:[
-        ['Séance allégée : je récupère',{fatigue:-13,form:6}],
-        ['Repos complet',{fatigue:-22,form:8,coach:1}],
-        ['Je continue normalement',{fatigue:5,mental:1,risk:.015}],
-        [role()==='GK'?'Travail de prises de balle léger':'Travail technique léger',{tech:1,fatigue:-4}]
-      ]
-    };
-  }
-
-  if(role()==='GK'){
-    return pick([
-      {
-        title:'Atelier gardien — réflexes',
-        text:'Frappes à courte distance, réactions et secondes balles.',
-        choices:[
-          ['Je travaille mes réflexes',{speed:2,mental:1,fatigue:4}],
-          ['Je reste debout le plus longtemps possible',{mental:2,coach:1,fatigue:3}],
-          ['Je travaille les appuis courts',{speed:2,physical:1,fatigue:4}],
-          ['Je demande une série supplémentaire',{speed:2,mental:1,fatigue:6,coach:2}]
-        ]
-      },
-      {
-        title:'Travail tactique — gardien',
-        text:'Placement, profondeur et organisation du bloc défensif.',
-        choices:[
-          ['Je travaille mon placement selon le ballon',{mental:2,coach:2}],
-          ['Je commande ma défense en permanence',{mental:2,locker:3,leadership:2}],
-          ['Je travaille mes sorties dans la profondeur',{speed:1,mental:2,fatigue:3}],
-          ['Je travaille la relance et le placement du bloc',{tech:2,mental:1}]
-        ]
-      },
-      {
-        title:'Sorties aériennes',
-        text:'Centres, prises de balle et décisions dans la surface.',
-        choices:[
-          ['Je sécurise mes prises de balle',{tech:2,mental:1,fatigue:3}],
-          ['Je travaille les sorties au poing',{physical:2,mental:1,fatigue:4}],
-          ['Je communique avant chaque sortie',{leadership:2,locker:2,mental:1}],
-          ['Je répète les centres sous pression',{tech:2,physical:1,fatigue:5}]
-        ]
-      },
-      {
-        title:'Opposition interne — gardien',
-        text:'Le coach observe particulièrement les gardiens pendant le match d’entraînement.',
-        choices:[
-          ['Je sécurise mes prises de balle',{tech:2,coach:2}],
-          ['Je sors rapidement dans les pieds',{speed:2,mental:1,fatigue:4}],
-          ['Je joue haut pour couvrir la défense',{mental:2,speed:1}],
-          ['Je dirige et replace ma défense',{leadership:3,locker:2,mental:1}]
-        ]
-      },
-      {
-        title:'Jeu au pied du gardien',
-        text:'Relances courtes, longues et sous pression.',
-        choices:[
-          ['Je travaille la relance courte',{tech:2,mental:1}],
-          ['Je travaille les dégagements longs',{physical:1,tech:2,fatigue:3}],
-          ['Je joue sous pressing',{mental:2,tech:1}],
-          ['Je travaille mon mauvais pied',{tech:3,fatigue:4}]
-        ]
-      }
-    ]);
-  }
-
-  return pick([
-    {title:'Atelier finition',text:'Frappes, reprises et face-à-face.',choices:[['Je travaille la précision',{tech:2,fatigue:5}],['Je frappe en puissance',{physical:1,tech:1,fatigue:5}],['Je travaille mon mauvais pied',{tech:2,mental:1,fatigue:5}],['Je reste après la séance',{tech:3,fatigue:7,coach:2}]]},
-    {title:'Travail tactique',text:'Déplacements, occupation des espaces et lecture du jeu.',choices:[['J’écoute toutes les consignes',{mental:2,coach:2}],['Je pose des questions',{mental:2,coach:1}],['Je guide mes coéquipiers',{mental:1,locker:3}],['Je travaille mon placement sans ballon',{mental:2,form:1}]]},
-    {title:'Séance vitesse',text:'Sprints et changements de direction.',choices:[['Je donne tout',{speed:2,fatigue:6}],['Je gère mes efforts',{speed:1,form:4,fatigue:-4,mental:1}],['Je travaille les départs',{speed:2,mental:1,fatigue:5}],['Je demande une série en plus',{speed:3,fatigue:8,coach:2}]]},
-    {title:'Opposition interne',text:'Match d’entraînement avec consignes liées à ton poste.',choices:[['Je joue simple',{mental:1,coach:2}],['Je tente de casser des lignes',{tech:2,coach:1}],['Je travaille le replacement',{physical:1,mental:2,fatigue:5}],['Je dirige mon équipe',{mental:2,locker:2,leadership:1}]]},
-    {title:'Le coach te félicite',text:'Il remarque ta bonne forme et ton sérieux.',choices:[['Je le remercie',{coach:3,mental:1}],['Je dis que le travail continue',{coach:4,mental:2}],['Je félicite aussi le groupe',{locker:2,coach:1}],['Je reste concentré',{form:2}]]},
-    {title:'Le coach te prévient',text:'Il trouve que tu manques de concentration sur certaines séquences.',choices:[['Je m’excuse',{coach:2,mental:1}],['Je demande quoi améliorer',{coach:3,mental:2}],['Je demande une séance vidéo',{mental:2,coach:2}],['Je recommence l’exercice',{coach:3,fatigue:2}]]}
-  ]);
-}
-
-function preMatchEvent(){
-  if(state.season.preMatch!==null) return;
-  if(Math.random()>.55){state.season.preMatch=false;return}
-
-  const genericBench={
-    title:'Tu débutes sur le banc',
-    text:role()==='GK'
-      ?'Le coach choisit l’autre gardien comme titulaire. Tu dois rester prêt en cas de blessure ou d’expulsion.'
-      :'Le coach te demande de rester prêt pour entrer en cours de rencontre.',
-    choices:[
-      ['Je respecte son choix',{coach:2,mental:1,forceBench:true,gkBench:role()==='GK'}],
-      ['Je demande une explication calmement',{coach:0,mental:1,forceBench:true,gkBench:role()==='GK'}],
-      ['Je râle devant le groupe',{coach:-5,locker:-2,forceBench:true,gkBench:role()==='GK'}],
-      ['Je me prépare comme si j’allais entrer',{mental:3,coach:1,forceBench:true,gkBench:role()==='GK'}]
-    ]
-  };
-
-  if(role()==='GK'){
-    state.season.preMatch=pick([
-      genericBench,
-      {
-        title:'Petite gêne à l’échauffement',
-        text:'Tu sens une légère tension avant la rencontre.',
-        choices:[
-          ['Je préviens immédiatement le staff',{coach:2,fatigue:-4,forceBench:true}],
-          ['Je poursuis prudemment',{mental:1,risk:.035}],
-          ['Je demande un échauffement adapté',{staffRelation:2,form:2}],
-          ['Je préfère ne prendre aucun risque',{fatigue:-8,forceBench:true,coach:1}]
-        ]
-      },
-      {
-        title:'Mission du coach — gardien',
-        text:'Le coach veut que tu commandes ta défense et sois agressif dans tes sorties.',
-        choices:[
-          ['Je joue haut et je sors dès que nécessaire',{speed:1,mental:2,coach:2}],
-          ['Je sécurise d’abord ma ligne et mes prises de balle',{tech:1,mental:2,coach:2}],
-          ['Je parle constamment à ma défense',{leadership:3,locker:2,mental:1}],
-          ['Je prends des risques pour imposer ma présence',{mental:2,physical:1,coach:1}]
-        ]
-      }
-    ]);
     return;
   }
 
@@ -4109,6 +3560,72 @@ function handlePreseasonChoice(index){
   render();
 }
 
+
+function applyNativePreseasonChoice(value){
+  state=load();
+  if(!state || !state.player || !state.season)return false;
+
+  state=normalizeState(state);
+  const opts=preseasonOptions();
+
+  let index;
+  if(value==='default'){
+    index=opts.findIndex(x=>x.name==='Préparation individuelle');
+    if(index<0)index=opts.findIndex(x=>x.name==='Coach personnel');
+    if(index<0)index=0;
+  }else{
+    index=Number(value);
+  }
+
+  if(!Number.isInteger(index) || !opts[index])return false;
+
+  const o=opts[index];
+
+  // Ici, aucune candidature ne peut bloquer la carrière.
+  // Si l'option était incertaine et refusée, on bascule automatiquement
+  // vers une préparation fiable.
+  let chosen=o;
+
+  if(o.admitted===false){
+    const p=state.player;
+    const score=(p.tech+p.speed+p.physical+p.mental)/4
+      +(p.reputation||0)*.18
+      +(p.maturity||25)*.08;
+
+    const accepted=Math.random()<clamp(.35+(score-50)/120,.20,.80);
+
+    if(!accepted){
+      chosen=opts.find(x=>x.name==='Préparation individuelle')
+        ||opts.find(x=>x.name==='Coach personnel')
+        ||opts[0];
+
+      log(
+        'Préparation d’avant-saison',
+        `${o.name} : candidature non retenue. Tu poursuis avec « ${chosen.name} ».`
+      );
+    }
+  }
+
+  apply(chosen.effects||{});
+
+  const s=state.season;
+  s.preseasonDone=true;
+  s.phase='life';
+  s.weekEvent=null;
+  s.trainingEvent=null;
+  s.preMatch=null;
+  s.matchAction=null;
+  s.lastActionMessage='';
+
+  log(
+    'Préparation d’avant-saison',
+    `${chosen.name} validée. Début de la saison à la journée ${s.round}.`
+  );
+
+  save();
+  return true;
+}
+
 /* Compatibilité avec d'anciens appels éventuels. */
 function choosePreseason(index){
   handlePreseasonChoice(index);
@@ -4339,7 +3856,30 @@ window.addEventListener('unhandledrejection', event => {
   console.error('TCROMA ACADEMY Promise:', event.reason);
 });
 
-show('home');
+
+(function startTcroma(){
+  const params=new URLSearchParams(window.location.search);
+  const nativePrep=params.get('tcromaPreseason');
+
+  if(nativePrep!==null){
+    const ok=applyNativePreseasonChoice(nativePrep);
+
+    // Nettoie l'URL pour éviter de réappliquer la préparation au prochain refresh.
+    try{
+      history.replaceState({},'',window.location.pathname+window.location.hash);
+    }catch(e){}
+
+    if(ok){
+      state=load();
+      show('game');
+      initializeCompetitions();
+      render();
+      return;
+    }
+  }
+
+  show('home');
+})();
 </script>
 </body>
 </html>
