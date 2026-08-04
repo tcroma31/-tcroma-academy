@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.2.9 — RESTAURATION COMPLÈTE</title>
+<title>TCROMA ACADEMY V4.2.9E — EXPORT SAUVEGARDE</title>
 
 <style>
 *{box-sizing:border-box}
@@ -39,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.2.9 — RESTAURATION COMPLÈTE</h1>
+    <h1>⚽ TCROMA ACADEMY V4.2.9E — EXPORT SAUVEGARDE</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
     <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
-    <p class="muted">Version 4.2.9 — Restauration complète</p>
+    <p class="muted">Version 4.2.9E — Export sauvegarde</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -151,6 +151,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 
   <div class="card">
     <button id="saveBtn" class="secondary">Sauvegarder</button>
+<button type="button" id="exportSaveBtn" class="secondary">Exporter la carrière</button>
     <button id="homeBtn" class="secondary">Accueil</button>
     <button id="deleteBtn" class="danger">Supprimer la carrière</button>
   </div>
@@ -1335,6 +1336,50 @@ const $ = id => document.getElementById(id);
 const clamp = (v,a=0,b=100) => Math.max(a,Math.min(b,v));
 const pick = a => a[Math.floor(Math.random()*a.length)];
 const rand = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+
+
+function exportCareerSave(){
+  try{
+    const payload={
+      exportedAt:new Date().toISOString(),
+      version:'V4.2.9E',
+      currentSaveKey:SAVE_KEY,
+      saves:{}
+    };
+
+    // Récupère toutes les sauvegardes TCROMA présentes dans ce navigateur,
+    // y compris les anciennes versions : utile pour restaurer une carrière cassée.
+    const keys=[SAVE_KEY,...LEGACY_SAVE_KEYS];
+    [...new Set(keys)].forEach(k=>{
+      const raw=localStorage.getItem(k);
+      if(raw){
+        try{ payload.saves[k]=JSON.parse(raw); }
+        catch(e){ payload.saves[k]=raw; }
+      }
+    });
+
+    // État actuellement chargé, sans le modifier.
+    if(state) payload.currentState=state;
+
+    const blob=new Blob(
+      [JSON.stringify(payload,null,2)],
+      {type:'application/json;charset=utf-8'}
+    );
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const playerName=state?.player
+      ? `${state.player.first||'joueur'}_${state.player.last||''}`.replace(/[^a-z0-9_-]+/gi,'_')
+      : 'carriere';
+    a.href=url;
+    a.download=`TCROMA_SAUVEGARDE_${playerName}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(err){
+    alert("Impossible d'exporter la carrière : "+err.message);
+  }
+}
 
 function save(){localStorage.setItem(SAVE_KEY,JSON.stringify(state))}
 function load(){
@@ -4523,6 +4568,12 @@ window.addEventListener('unhandledrejection', event => {
 });
 
 show('home');
+
+const exportSaveBtn=document.getElementById('exportSaveBtn');
+if(exportSaveBtn){
+  exportSaveBtn.onclick=exportCareerSave;
+}
+
 </script>
 </body>
 </html>
