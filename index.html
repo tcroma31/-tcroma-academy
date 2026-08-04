@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.2.8 — SAISON SÉCURISÉE</title>
+<title>TCROMA ACADEMY V4.2.9 — RESTAURATION COMPLÈTE</title>
 
 <style>
 *{box-sizing:border-box}
@@ -39,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.2.8 — SAISON SÉCURISÉE</h1>
+    <h1>⚽ TCROMA ACADEMY V4.2.9 — RESTAURATION COMPLÈTE</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
     <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
-    <p class="muted">Version 4.2.8 — Saison sécurisée</p>
+    <p class="muted">Version 4.2.9 — Restauration complète</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -161,8 +161,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV428';
+const SAVE_KEY = 'tcromaAcademyV429';
 const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV428',
   'tcromaAcademyV427',
   'tcromaAcademyV426',
   'tcromaAcademyV424',
@@ -1364,27 +1365,54 @@ function load(){
 function repairV427AgeCorruption(data){
   if(!data || !data.player || !data.season)return data;
   const p=data.player;
+  const s=data.season;
   const leagueName=String((data.league&&data.league.name)||'');
+  const leagueLevel=String((data.league&&data.league.level)||'');
   const academy=String(p.academy||'');
-  const youthContext=/jeune|juvenil|academy|formation/i.test(leagueName+' '+academy);
+  const country=String(p.academyCountry||p.currentCountry||'');
+  const youthContext=/jeune|juvenil|academy|formation/i.test(leagueName+' '+leagueLevel+' '+academy);
 
   if(Number(p.age)>35 && youthContext){
     p.age=18;
-    data.season.round=1;
-    data.season.phase='life';
-    data.season.preseasonPending=true;
-    data.season.preseasonDone=false;
-    data.season.seasonProcessed=false;
-    data.season.endReport=null;
-    data.season.midReport=null;
-    data.season.weekEvent=null;
-    data.season.trainingEvent=null;
-    data.season.preMatch=null;
-    data.season.matchAction=null;
+
+    // Reconstruire le championnat jeune du club/pays actuel.
+    const foreignDef=YOUTH_LEAGUES_BY_COUNTRY[country];
+    if(foreignDef && country!=='France'){
+      data.league=makeAcademyLeague(country,p.club);
+    }else{
+      data.league=makeLeague(p.club,'National jeunes',p.department||'Haute-Garonne');
+    }
+
+    p.seasonStartClub=p.club;
+    p.seasonStartLevel=data.league.level;
+    p.currentCountry=p.currentCountry||clubCountry(p.club);
+
+    // Début de saison réellement jouable.
+    s.round=1;
+    s.phase='life';
+    s.preseasonPending=false;
+    s.preseasonDone=true;
+    s.seasonProcessed=false;
+    s.midReportDone=false;
+    s.endReport=null;
+    s.endExtras='';
+    s.midReport=null;
+    s.weekEvent=null;
+    s.trainingEvent=null;
+    s.preMatch=null;
+    s.matchAction=null;
+    s.lastResult=null;
+    s.lastActionMessage='';
+    s.activeCompetitionId='';
+    s.lastCompetitionResult=null;
+    s.regionalClubChoice=false;
+
+    // Reconstruire les compétitions au prochain rendu.
+    data.competitions={active:[],calendar:[],trophies:Array.isArray(data.competitions?.trophies)?data.competitions.trophies:[],records:Array.isArray(data.competitions?.records)?data.competitions.records:[]};
+
     if(Array.isArray(p.academyOffers)){
       p.academyOffers.forEach(o=>{if(o&&o.status==='active')o.status='declined';});
     }
-    data.season.regionalClubChoice=false;
     p.regionalDecisionPending=false;
     data.__repairedV427Age=true;
   }
@@ -4056,6 +4084,11 @@ function render(){
   }
 
   renderHeader();
+  // Une restauration doit toujours déboucher sur un écran jouable.
+  if(state.season.phase==='life' && !state.season.weekEvent){
+    createWeekEvent();
+  }
+  initializeCompetitions();
   renderWeek();
   renderTabs();
   save();
