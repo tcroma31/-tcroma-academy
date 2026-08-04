@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.2.6 — PRÉPARATION NON BLOQUANTE</title>
+<title>TCROMA ACADEMY V4.2.7 — FIN DE SAISON DÉBLOQUÉE</title>
 
 <style>
 *{box-sizing:border-box}
@@ -39,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.2.6 — PRÉPARATION NON BLOQUANTE</h1>
+    <h1>⚽ TCROMA ACADEMY V4.2.7 — FIN DE SAISON DÉBLOQUÉE</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
     <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
-    <p class="muted">Version 4.2.6 — Préparation non bloquante</p>
+    <p class="muted">Version 4.2.7 — Fin de saison débloquée</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -161,8 +161,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV426';
+const SAVE_KEY = 'tcromaAcademyV427';
 const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV426',
   'tcromaAcademyV424',
   'tcromaAcademyV423',
   'tcromaAcademyV422',
@@ -3382,6 +3383,47 @@ function endSeason(){
   save();
 }
 
+
+function forceNextSeason(){
+  if(!state || !state.player || !state.season)return;
+
+  const p=state.player;
+  const s=state.season;
+
+  // À 17 ans, le bouton Saison suivante doit TOUJOURS permettre
+  // de passer à la saison des 18 ans.
+  if(p.age===17){
+    if(Array.isArray(p.academyOffers)){
+      p.academyOffers.forEach(o=>{
+        if(o && o.status==='active')o.status='declined';
+      });
+    }
+    s.regionalClubChoice=false;
+    s.regionalDecisionPending=false;
+    p.regionalDecisionPending=false;
+    nextSeason();
+    return;
+  }
+
+  const pendingAcademy=(p.academyOffers||[]).some(o=>o.status==='active');
+  if(pendingAcademy){
+    alert('Décide d’abord pour les propositions de centre : accepter, demander un délai ou refuser.');
+    return;
+  }
+
+  if(s.regionalClubChoice){
+    alert('Choisis d’abord ton club régional.');
+    return;
+  }
+
+  if(p.age>=18 && p.amateur && p.regionalDecisionPending && !p.licenseRenewed){
+    alert('Décide d’abord où tu prends ta licence dans l’onglet Mercato.');
+    return;
+  }
+
+  nextSeason();
+}
+
 function nextSeason(){
   const p=state.player;
   p.age++;
@@ -3636,7 +3678,7 @@ function renderWeek(){
       ${s.regionalClubChoice?`<div class="card"><h2>Choisis ton club régional</h2>${['EFCV Verfeil','FC Girou','FC Lauragais',"L'Union Saint-Jean",'FC Lavaur'].map(c=>`<button data-act="regionalClub" data-club="${c}">${c}</button>`).join('')}</div>`:''}
       ${academyOffersHTML()}
       <div class="card"><h2>Classement final</h2>${tableHTML()}
-      <button data-act="nextSeason">Saison suivante</button></div>`;
+      <button type="button" data-act="nextSeason" onclick="forceNextSeason(); return false;">Saison suivante</button></div>`;
     return;
   }
 
@@ -4395,13 +4437,7 @@ document.addEventListener('click',e=>{
   }
 
   else if(a==='nextSeason'){
-    const pendingAcademy=(p.academyOffers||[]).some(o=>o.status==='active');
-    if(pendingAcademy){alert('Décide d’abord pour les propositions de centre : accepter, demander un délai ou refuser.');return}
-    if(s.regionalClubChoice){alert('Choisis d’abord ton club régional.');return}
-    if(p.age>=18&&p.amateur&&p.regionalDecisionPending&&!p.licenseRenewed){
-      alert('Décide d’abord où tu prends ta licence dans l’onglet Mercato.');return
-    }
-    nextSeason();
+    forceNextSeason();
   }
 });
 
