@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.3.3 — TRANSFERTS INTER-CHAMPIONNATS</title>
+<title>TCROMA ACADEMY V4.4.0 — 3 SAUVEGARDES</title>
 
 <style>
 *{box-sizing:border-box}
@@ -39,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.3.3 — TRANSFERTS INTER-CHAMPIONNATS</h1>
+    <h1>⚽ TCROMA ACADEMY V4.4.0 — 3 SAUVEGARDES</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
     <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
-    <p class="muted">Version 4.3.3 — Transferts inter-championnats</p>
+    <p class="muted">Version 4.4.0 — 3 sauvegardes</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -150,10 +150,14 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
   <section id="tab-future" class="hidden"></section><section id="tab-honours" class="hidden"></section><section id="tab-money" class="hidden"></section><section id="tab-market" class="hidden"></section><section id="tab-pro" class="hidden"></section><section id="tab-competitions" class="hidden"></section>
 
   <div class="card">
-    <button id="saveBtn" class="secondary">Sauvegarder</button>
-<button type="button" id="exportSaveBtn" class="secondary">Exporter la carrière</button>
+    <h2>💾 Gestion des sauvegardes</h2>
+    <p class="muted">Trois emplacements indépendants. Tu peux sauvegarder, charger, exporter ou importer chaque carrière.</p>
+    <div id="saveSlots"></div>
+    <input id="importSaveInput" type="file" accept=".json,application/json" class="hidden">
+    <button id="saveBtn" class="secondary">Sauvegarder sur l’emplacement actif</button>
+    <button id="exportSaveBtn" class="secondary">Exporter l’emplacement actif</button>
     <button id="homeBtn" class="secondary">Accueil</button>
-    <button id="deleteBtn" class="danger">Supprimer la carrière</button>
+    <button id="deleteBtn" class="danger">Supprimer la carrière active</button>
   </div>
 </section>
 
@@ -162,8 +166,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV433';
+const SAVE_KEY = 'tcromaAcademyV440';
 const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV433',
   'tcromaAcademyV432',
   'tcromaAcademyV431',
   'tcromaAcademyV430',
@@ -183,6 +188,9 @@ const LEGACY_SAVE_KEYS = [
   'tcromaAcademyV341',
   'tcromaAcademyV34'
 ];
+const SAVE_SLOTS = ['tcromaAcademySlot1','tcromaAcademySlot2','tcromaAcademySlot3'];
+let activeSaveSlot = Number(localStorage.getItem('tcromaAcademyActiveSlot') || 1);
+if(![1,2,3].includes(activeSaveSlot)) activeSaveSlot=1;
 
 const DEPARTMENT_CLUBS = {
   'Haute-Garonne':[
@@ -1417,11 +1425,160 @@ const pick = a => a[Math.floor(Math.random()*a.length)];
 const rand = (a,b) => a + Math.floor(Math.random()*(b-a+1));
 
 
+
+function slotKey(slot){
+  return SAVE_SLOTS[(Number(slot)||1)-1];
+}
+
+function rawSlot(slot){
+  return localStorage.getItem(slotKey(slot));
+}
+
+function readSlot(slot){
+  const raw=rawSlot(slot);
+  if(!raw)return null;
+  try{return JSON.parse(raw)}catch(e){return null}
+}
+
+function slotDescription(slot){
+  const s=readSlot(slot);
+  if(!s?.player)return 'Vide';
+  const p=s.player;
+  const level=s.league?.level || p.proLeague || p.careerPath || '';
+  return `${p.first||''} ${p.last||''} — ${p.age||'?'} ans — ${p.club||''}${level?` — ${level}`:''}`;
+}
+
+function renderSaveSlots(){
+  const box=document.getElementById('saveSlots');
+  if(!box)return;
+  box.innerHTML=[1,2,3].map(slot=>{
+    const active=slot===activeSaveSlot;
+    return `<div class="trophy">
+      <strong>Emplacement ${slot}${active?' — ACTIF':''}</strong><br>
+      <span class="muted">${slotDescription(slot)}</span>
+      <button type="button" data-save-act="select" data-slot="${slot}" class="${active?'':'secondary'}">${active?'Emplacement actif':'Choisir cet emplacement'}</button>
+      <button type="button" data-save-act="save" data-slot="${slot}">Sauvegarder ici</button>
+      <button type="button" data-save-act="load" data-slot="${slot}" class="secondary">Charger</button>
+      <button type="button" data-save-act="export" data-slot="${slot}" class="secondary">Exporter</button>
+      <button type="button" data-save-act="import" data-slot="${slot}" class="secondary">Importer</button>
+      <button type="button" data-save-act="delete" data-slot="${slot}" class="danger">Supprimer cet emplacement</button>
+    </div>`;
+  }).join('');
+}
+
+function saveToSlot(slot){
+  if(!state)return false;
+  const n=Math.max(1,Math.min(3,Number(slot)||1));
+  activeSaveSlot=n;
+  localStorage.setItem('tcromaAcademyActiveSlot',String(n));
+  localStorage.setItem(slotKey(n),JSON.stringify(state));
+  localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+  renderSaveSlots();
+  return true;
+}
+
+function loadFromSlot(slot){
+  const n=Math.max(1,Math.min(3,Number(slot)||1));
+  const data=readSlot(n);
+  if(!data)return false;
+  const normalized=normalizeState(data);
+  if(!normalized)return false;
+  state=normalized;
+  activeSaveSlot=n;
+  localStorage.setItem('tcromaAcademyActiveSlot',String(n));
+  localStorage.setItem(slotKey(n),JSON.stringify(state));
+  localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+  return true;
+}
+
+function deleteSlot(slot){
+  const n=Math.max(1,Math.min(3,Number(slot)||1));
+  localStorage.removeItem(slotKey(n));
+  renderSaveSlots();
+}
+
+function exportSlot(slot){
+  const n=Math.max(1,Math.min(3,Number(slot)||1));
+  const data=readSlot(n);
+  if(!data)return alert(`L’emplacement ${n} est vide.`);
+
+  const payload={
+    tcromaSave:true,
+    formatVersion:1,
+    gameVersion:'V4.4.0',
+    slot:n,
+    exportedAt:new Date().toISOString(),
+    state:data
+  };
+
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const p=data.player||{};
+  const name=`${p.first||'joueur'}_${p.last||''}`.replace(/[^a-z0-9_-]+/gi,'_');
+  a.href=url;
+  a.download=`TCROMA_SLOT_${n}_${name}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function importSlotFile(slot,file){
+  if(!file)return;
+  const n=Math.max(1,Math.min(3,Number(slot)||1));
+  const reader=new FileReader();
+
+  reader.onload=()=>{
+    try{
+      const parsed=JSON.parse(reader.result);
+      const imported=parsed?.tcromaSave ? parsed.state : (parsed?.currentState || parsed?.state || parsed);
+      if(!imported?.player || !imported?.season) throw new Error('Fichier TCROMA invalide');
+
+      const normalized=normalizeState(imported);
+      if(!normalized)throw new Error('Sauvegarde illisible');
+
+      state=normalized;
+      activeSaveSlot=n;
+      localStorage.setItem('tcromaAcademyActiveSlot',String(n));
+      localStorage.setItem(slotKey(n),JSON.stringify(state));
+      localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+
+      show('game');
+      initializeCompetitions();
+      render();
+      alert(`Sauvegarde importée dans l’emplacement ${n}.`);
+    }catch(err){
+      alert(`Import impossible : ${err.message}`);
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+function migrateLegacyToSlot1(){
+  if(SAVE_SLOTS.some(k=>localStorage.getItem(k)))return;
+
+  for(const key of [SAVE_KEY,...LEGACY_SAVE_KEYS]){
+    const raw=localStorage.getItem(key);
+    if(!raw)continue;
+    try{
+      const data=JSON.parse(raw);
+      if(data?.player && data?.season){
+        localStorage.setItem(SAVE_SLOTS[0],JSON.stringify(data));
+        activeSaveSlot=1;
+        localStorage.setItem('tcromaAcademyActiveSlot','1');
+        return;
+      }
+    }catch(e){}
+  }
+}
+
 function exportCareerSave(){
   try{
     const payload={
       exportedAt:new Date().toISOString(),
-      version:'V4.3.3',
+      version:'V4.4.0',
       currentSaveKey:SAVE_KEY,
       saves:{}
     };
@@ -1460,26 +1617,35 @@ function exportCareerSave(){
   }
 }
 
-function save(){localStorage.setItem(SAVE_KEY,JSON.stringify(state))}
+function save(){
+  if(!state)return;
+  localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+  localStorage.setItem(slotKey(activeSaveSlot),JSON.stringify(state));
+  localStorage.setItem('tcromaAcademyActiveSlot',String(activeSaveSlot));
+  renderSaveSlots();
+}
 function load(){
   try{
-    let raw=localStorage.getItem(SAVE_KEY);
+    migrateLegacyToSlot1();
 
-    if(!raw){
-      for(const key of LEGACY_SAVE_KEYS){
-        raw=localStorage.getItem(key);
-        if(raw)break;
-      }
+    const ordered=[slotKey(activeSaveSlot),SAVE_KEY,...LEGACY_SAVE_KEYS];
+    for(const key of ordered){
+      const raw=localStorage.getItem(key);
+      if(!raw)continue;
+
+      try{
+        const data=JSON.parse(raw);
+        const normalized=normalizeState(data);
+        if(normalized){
+          state=normalized;
+          localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+          localStorage.setItem(slotKey(activeSaveSlot),JSON.stringify(state));
+          return state;
+        }
+      }catch(e){}
     }
 
-    const data=JSON.parse(raw);
-    const normalized=normalizeState(data);
-
-    if(normalized){
-      localStorage.setItem(SAVE_KEY,JSON.stringify(normalized));
-    }
-
-    return normalized;
+    return null;
   }catch{
     return null;
   }
@@ -4437,21 +4603,21 @@ $('startCareer').onclick=()=>{
     `Arrivée au ${c}, dans le département ${d}, à 13 ans en Départemental jeunes.`
   );
   initializeCompetitions(true);
-  save();
+  saveToSlot(activeSaveSlot);
   show('game');
   render();
 
 };
 
 $('homeBtn').onclick=()=>show('home');
-$('saveBtn').onclick=()=>{save();alert('Sauvegarde effectuée.')};
+$('saveBtn').onclick=()=>{saveToSlot(activeSaveSlot);alert(`Sauvegarde effectuée sur l’emplacement ${activeSaveSlot}.`)};
 $('deleteBtn').onclick=()=>{
-  if(confirm('Supprimer la carrière ?')){
+  if(confirm(`Supprimer la carrière de l’emplacement ${activeSaveSlot} ?`)){
+    localStorage.removeItem(slotKey(activeSaveSlot));
     localStorage.removeItem(SAVE_KEY);
-    LEGACY_SAVE_KEYS.forEach(k=>localStorage.removeItem(k));
     state=null;
+    renderSaveSlots();
     show('home');
-
   }
 };
 
@@ -4851,8 +5017,57 @@ show('home');
 
 const exportSaveBtn=document.getElementById('exportSaveBtn');
 if(exportSaveBtn){
-  exportSaveBtn.onclick=exportCareerSave;
+  exportSaveBtn.onclick=()=>exportSlot(activeSaveSlot);
 }
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-save-act]');
+  if(!b)return;
+
+  const action=b.dataset.saveAct;
+  const slot=Number(b.dataset.slot)||1;
+
+  if(action==='select'){
+    activeSaveSlot=slot;
+    localStorage.setItem('tcromaAcademyActiveSlot',String(slot));
+    renderSaveSlots();
+  }else if(action==='save'){
+    if(!state)return alert('Aucune carrière chargée.');
+    saveToSlot(slot);
+    alert(`Carrière sauvegardée dans l’emplacement ${slot}.`);
+  }else if(action==='load'){
+    if(!loadFromSlot(slot))return alert(`L’emplacement ${slot} est vide.`);
+    show('game');
+    initializeCompetitions();
+    render();
+  }else if(action==='export'){
+    exportSlot(slot);
+  }else if(action==='import'){
+    const input=document.getElementById('importSaveInput');
+    input.dataset.targetSlot=String(slot);
+    input.value='';
+    input.click();
+  }else if(action==='delete'){
+    if(confirm(`Supprimer l’emplacement ${slot} ?`)){
+      deleteSlot(slot);
+      if(slot===activeSaveSlot){
+        localStorage.removeItem(SAVE_KEY);
+      }
+    }
+  }
+});
+
+const importSaveInput=document.getElementById('importSaveInput');
+if(importSaveInput){
+  importSaveInput.addEventListener('change',()=>{
+    const slot=Number(importSaveInput.dataset.targetSlot)||1;
+    const file=importSaveInput.files?.[0];
+    importSlotFile(slot,file);
+  });
+}
+
+migrateLegacyToSlot1();
+renderSaveSlots();
 
 </script>
 </body>
