@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.3.1 — CLICS 18 ANS CORRIGÉS</title>
+<title>TCROMA ACADEMY V4.3.2 — CHAMPIONNATS PRO 18 CLUBS</title>
 
 <style>
 *{box-sizing:border-box}
@@ -39,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.3.1 — CLICS 18 ANS CORRIGÉS</h1>
+    <h1>⚽ TCROMA ACADEMY V4.3.2 — CHAMPIONNATS PRO 18 CLUBS</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
     <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
-    <p class="muted">Version 4.3.1 — Clics 18 ans corrigés</p>
+    <p class="muted">Version 4.3.2 — Championnats pro 18 clubs</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -162,8 +162,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV431';
+const SAVE_KEY = 'tcromaAcademyV432';
 const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV431',
   'tcromaAcademyV430',
   'tcromaAcademyV429',
   'tcromaAcademyV428',
@@ -817,6 +818,35 @@ PRO_LEAGUES['MLS']={country:'USA',prestige:70,clubs:['Inter Miami','LA Galaxy','
 PRO_LEAGUES['Jupiler Pro League']={country:'Belgique',prestige:69,clubs:['Anderlecht','Club Bruges','Genk','Standard de Liège','La Gantoise','Antwerp','Charleroi','Saint-Trond','Malines','Cercle Bruges']};
 PRO_LEAGUES['Chinese Super League']={country:'Chine',prestige:60,clubs:['Shanghai Port','Shanghai Shenhua','Beijing Guoan','Shandong Taishan','Chengdu Rongcheng','Tianjin Jinmen Tiger','Wuhan Three Towns','Henan FC','Zhejiang FC','Qingdao Hainiu']};
 
+
+const PRO_LEAGUE_EXTRA_CLUBS = {
+  'Ligue 1':['Strasbourg','Nantes','Brest','Auxerre','Le Havre','Angers','Reims','Saint-Étienne'],
+  'Ligue 2':['Metz','Lorient','Paris FC','Annecy','Ajaccio','Troyes','Martigues','Red Star'],
+  'Premier League':['Brighton','Crystal Palace','Fulham','Brentford','Bournemouth','Wolves','Nottingham Forest','Leicester'],
+  'Championship':['West Bromwich','Sheffield United','Millwall','QPR','Preston','Swansea','Stoke City','Derby County'],
+  'Liga':['Osasuna','Getafe','Celta Vigo','Mallorca','Rayo Vallecano','Alavés','Las Palmas','Espanyol'],
+  'Liga 2':['Huesca','Burgos','Mirandés','Cartagena','Córdoba','Málaga','Deportivo La Coruña','Castellón'],
+  'Serie A':['Genoa','Udinese','Monza','Empoli','Lecce','Cagliari','Vérone','Parme'],
+  'Serie B':['Cesena','Spezia','Brescia','Südtirol','Cittadella','Carrarese','Salernitana','Frosinone'],
+  'Bundesliga':['Mayence','Augsbourg','Union Berlin','Bochum','Heidenheim','Holstein Kiel','St. Pauli','Mönchengladbach'],
+  'Bundesliga 2':['Cologne','Darmstadt','Greuther Fürth','Elversberg','Münster','Ulm','Braunschweig','Regensburg'],
+  'Liga Portugal':['Casa Pia','Gil Vicente','Moreirense','Farense','Santa Clara','Estrela Amadora','AVS','Nacional'],
+  'Liga Portugal 2':['Portimonense','Paços Ferreira','Chaves','Vizela','Alverca','Benfica B','Porto B','Felgueiras'],
+  'Saudi Pro League':['Al Khaleej','Al Fayha','Damac','Al Raed','Al Wehda','Al Okhdood','Al Kholood','Al Orubah'],
+  'Qatar Stars League':['Al Khor','Al Shahaniya','Muaither','Al Markhiya','Al Sailiya','Al Kharaitiyat','Mesaimeer','Al Bidda'],
+  'MLS':['New York Red Bulls','Toronto FC','CF Montréal','Chicago Fire','FC Dallas','Houston Dynamo','Minnesota United','Nashville SC'],
+  'Jupiler Pro League':['Union Saint-Gilloise','Westerlo','OH Louvain','Courtrai','Dender','Beerschot','RWDM','Eupen'],
+  'Chinese Super League':['Meizhou Hakka','Changchun Yatai','Cangzhou Mighty Lions','Nantong Zhiyun','Shenzhen Peng City','Qingdao West Coast','Dalian Pro','Guangzhou City']
+};
+
+function proLeagueClubs18(leagueName,playerClub=''){
+  const data=PRO_LEAGUES[leagueName]||PRO_LEAGUES['Ligue 2'];
+  const extra=PRO_LEAGUE_EXTRA_CLUBS[leagueName]||[];
+  const all=[playerClub,...data.clubs,...extra].filter(Boolean);
+  const unique=[...new Set(all)];
+  return unique.slice(0,18);
+}
+
 const PRESS_EVENTS = [
   {
     title:'Conférence de presse après une victoire',
@@ -1127,18 +1157,38 @@ const COMPETITION_DEFINITIONS = {
 };
 
 function competitionIdsForPlayer(p){
+  const country=p.currentCountry||p.academyCountry||clubCountry(p.club)||'France';
+
   const foreignYouth=
     !p.pro &&
     p.academy &&
     p.academy!=='Aucun' &&
-    p.academyCountry &&
-    p.academyCountry!=='France';
+    country!=='France';
 
+  // Un jeune en centre à l'étranger ne joue jamais la Gambardella
+  // ni les coupes régionales/françaises.
   if(foreignYouth)return [];
 
   if(p.age<=15)return ['district','regionalYouth'];
-  if(p.age<=17)return ['regionalYouth','gambardella'];
-  if(p.age===18)return p.pro?['gambardella','nationalCup']:['gambardella','occitanie','france'];
+
+  if(p.age<=17){
+    return country==='France'
+      ? ['regionalYouth','gambardella']
+      : [];
+  }
+
+  if(p.age===18){
+    if(p.pro){
+      const ids=['nationalCup'];
+      if(country==='France')ids.unshift('gambardella');
+      if((p.clubPrestige||0)>=72)ids.push('champions');
+      return ids;
+    }
+
+    return country==='France'
+      ? ['gambardella','occitanie','france']
+      : [];
+  }
 
   if(p.pro){
     const ids=['nationalCup'];
@@ -1146,7 +1196,7 @@ function competitionIdsForPlayer(p){
     return ids;
   }
 
-  return ['occitanie','france'];
+  return country==='France' ? ['occitanie','france'] : [];
 }
 
 function createCompetition(id){
@@ -1370,7 +1420,7 @@ function exportCareerSave(){
   try{
     const payload={
       exportedAt:new Date().toISOString(),
-      version:'V4.3.1',
+      version:'V4.3.2',
       currentSaveKey:SAVE_KEY,
       saves:{}
     };
@@ -1568,6 +1618,21 @@ function normalizeState(data){
 
   const p = data.player;
   const s = data.season;
+  // Migration V4.3.2 : un championnat professionnel doit contenir 18 clubs.
+  if(p.pro && p.proLeague && PRO_LEAGUES[p.proLeague]){
+    const currentCount=Array.isArray(data.league?.clubs)?data.league.clubs.length:0;
+    if(currentCount!==18){
+      const oldRound=Math.max(1,Number(s.round)||1);
+      const oldTotal=Math.max(1,Number(data.league?.schedule?.length)||1);
+      const newLeague=makeProfessionalLeague();
+      const targetRound=equivalentTransferRound(oldRound,oldTotal,newLeague.schedule.length);
+      seedLeagueBeforeArrival(newLeague,targetRound);
+      data.league=newLeague;
+      s.round=targetRound;
+      data.__proLeague18Migrated=true;
+    }
+  }
+
 
   p.age = Number(p.age) || 13;
   p.department = p.department || 'Haute-Garonne';
@@ -3024,8 +3089,14 @@ function makeProfessionalLeague(){
   const p=state.player;
   assignProLeague();
   const data=PRO_LEAGUES[p.proLeague]||PRO_LEAGUES['Ligue 2'];
-  const clubs=[p.club,...data.clubs.filter(c=>c!==p.club)].slice(0,10);
-  return {level:p.proLeague,clubs,table:clubs.map(freshTeam),schedule:schedule(clubs)};
+  const clubs=proLeagueClubs18(p.proLeague,p.club);
+  return {
+    level:p.proLeague,
+    country:data.country,
+    clubs,
+    table:clubs.map(freshTeam),
+    schedule:schedule(clubs)
+  };
 }
 
 function pressConference(){
