@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.3.0 — DÉBLOCAGE 18 ANS</title>
+<title>TCROMA ACADEMY V4.3.1 — CLICS 18 ANS CORRIGÉS</title>
 
 <style>
 *{box-sizing:border-box}
@@ -39,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.3.0 — DÉBLOCAGE 18 ANS</h1>
+    <h1>⚽ TCROMA ACADEMY V4.3.1 — CLICS 18 ANS CORRIGÉS</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
     <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
-    <p class="muted">Version 4.3.0 — Déblocage 18 ans</p>
+    <p class="muted">Version 4.3.1 — Clics 18 ans corrigés</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -162,8 +162,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV430';
+const SAVE_KEY = 'tcromaAcademyV431';
 const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV430',
   'tcromaAcademyV429',
   'tcromaAcademyV428',
   'tcromaAcademyV427',
@@ -1369,7 +1370,7 @@ function exportCareerSave(){
   try{
     const payload={
       exportedAt:new Date().toISOString(),
-      version:'V4.3.0',
+      version:'V4.3.1',
       currentSaveKey:SAVE_KEY,
       saves:{}
     };
@@ -1508,7 +1509,14 @@ function repairForeignYouthAge18(data){
     p.academyCountry &&
     p.academyCountry!=='France';
 
-  if(Number(p.age)===18 && justFinished17 && foreignAcademy && !p.pro && !p.amateur){
+  if(
+    Number(p.age)===18 &&
+    justFinished17 &&
+    foreignAcademy &&
+    !p.pro &&
+    !p.amateur &&
+    !data.__foreignYouth18Repaired
+  ){
     const expected=YOUTH_LEAGUES_BY_COUNTRY[p.academyCountry];
 
     if(expected){
@@ -1546,6 +1554,13 @@ function repairForeignYouthAge18(data){
   return data;
 }
 
+
+/*
+  IMPORTANT V4.3.1
+  repairForeignYouthAge18() est une migration ONE-SHOT.
+  Le drapeau __foreignYouth18Repaired empêche cette migration de remettre
+  weekEvent/trainingEvent à null à chaque clic.
+*/
 function normalizeState(data){
   data=repairForeignYouthAge18(data);
   data=repairV427AgeCorruption(data);
@@ -4452,7 +4467,26 @@ document.addEventListener('click',e=>{
       s.preseasonDone=true;
       log('Préparation d’avant-saison','Tu commences la saison sans préparation particulière.');
     }
+
+    // Sécurité : ne jamais laisser un clic sans réaction si un événement
+    // a été perdu par une ancienne sauvegarde.
+    if(!s.weekEvent || !Array.isArray(s.weekEvent.choices)){
+      s.phase='life';
+      s.weekEvent=null;
+      save();
+      render();
+      return;
+    }
+
     const c=s.weekEvent.choices[+b.dataset.i];
+    if(!c){
+      alert('Choix introuvable. La semaine va être rechargée.');
+      s.weekEvent=null;
+      save();
+      render();
+      return;
+    }
+
     apply(c[1]);
 
     if(c[1].risk&&Math.random()<c[1].risk)maybeInjury('training');
@@ -4484,14 +4518,26 @@ document.addEventListener('click',e=>{
   }
 
   else if(a==='trainingChoice'){
+    if(!s.trainingEvent || !Array.isArray(s.trainingEvent.choices)){
+      s.trainingEvent=null;
+      s.phase='training';
+      save();render();return;
+    }
     const c=s.trainingEvent.choices[+b.dataset.i];
+    if(!c){s.trainingEvent=null;save();render();return;}
     apply(c[1]);log(s.trainingEvent.title,`Choix : ${c[0]}`);
     maybeInjury('training');
     s.phase='prematch';save();render();
   }
 
   else if(a==='preChoice'){
+    if(!s.preMatch || !Array.isArray(s.preMatch.choices)){
+      s.preMatch=null;
+      s.phase='prematch';
+      save();render();return;
+    }
     const c=s.preMatch.choices[+b.dataset.i];
+    if(!c){s.preMatch=null;save();render();return;}
     apply(c[1]);
     if(c[1].gkBench)s.gkBench=true;
     if(c[1].risk&&Math.random()<c[1].risk)maybeInjury('match');
