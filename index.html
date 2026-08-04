@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.2.7 — FIN DE SAISON DÉBLOQUÉE</title>
+<title>TCROMA ACADEMY V4.2.8 — SAISON SÉCURISÉE</title>
 
 <style>
 *{box-sizing:border-box}
@@ -39,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.2.7 — FIN DE SAISON DÉBLOQUÉE</h1>
+    <h1>⚽ TCROMA ACADEMY V4.2.8 — SAISON SÉCURISÉE</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
     <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
-    <p class="muted">Version 4.2.7 — Fin de saison débloquée</p>
+    <p class="muted">Version 4.2.8 — Saison sécurisée</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -161,8 +161,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV427';
+const SAVE_KEY = 'tcromaAcademyV428';
 const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV427',
   'tcromaAcademyV426',
   'tcromaAcademyV424',
   'tcromaAcademyV423',
@@ -1359,7 +1360,39 @@ function load(){
   }
 }
 
+
+function repairV427AgeCorruption(data){
+  if(!data || !data.player || !data.season)return data;
+  const p=data.player;
+  const leagueName=String((data.league&&data.league.name)||'');
+  const academy=String(p.academy||'');
+  const youthContext=/jeune|juvenil|academy|formation/i.test(leagueName+' '+academy);
+
+  if(Number(p.age)>35 && youthContext){
+    p.age=18;
+    data.season.round=1;
+    data.season.phase='life';
+    data.season.preseasonPending=true;
+    data.season.preseasonDone=false;
+    data.season.seasonProcessed=false;
+    data.season.endReport=null;
+    data.season.midReport=null;
+    data.season.weekEvent=null;
+    data.season.trainingEvent=null;
+    data.season.preMatch=null;
+    data.season.matchAction=null;
+    if(Array.isArray(p.academyOffers)){
+      p.academyOffers.forEach(o=>{if(o&&o.status==='active')o.status='declined';});
+    }
+    data.season.regionalClubChoice=false;
+    p.regionalDecisionPending=false;
+    data.__repairedV427Age=true;
+  }
+  return data;
+}
+
 function normalizeState(data){
+  data=repairV427AgeCorruption(data);
   if(!data || !data.player || !data.season) return null;
 
   const p = data.player;
@@ -3384,8 +3417,11 @@ function endSeason(){
 }
 
 
+let seasonTransitionLocked=false;
+
 function forceNextSeason(){
   if(!state || !state.player || !state.season)return;
+  if(seasonTransitionLocked)return;
 
   const p=state.player;
   const s=state.season;
@@ -3401,7 +3437,9 @@ function forceNextSeason(){
     s.regionalClubChoice=false;
     s.regionalDecisionPending=false;
     p.regionalDecisionPending=false;
-    nextSeason();
+    seasonTransitionLocked=true;
+    try{ nextSeason(); }
+    finally{ setTimeout(()=>{seasonTransitionLocked=false},700); }
     return;
   }
 
@@ -3421,7 +3459,9 @@ function forceNextSeason(){
     return;
   }
 
-  nextSeason();
+  seasonTransitionLocked=true;
+  try{ nextSeason(); }
+  finally{ setTimeout(()=>{seasonTransitionLocked=false},700); }
 }
 
 function nextSeason(){
@@ -3678,7 +3718,7 @@ function renderWeek(){
       ${s.regionalClubChoice?`<div class="card"><h2>Choisis ton club régional</h2>${['EFCV Verfeil','FC Girou','FC Lauragais',"L'Union Saint-Jean",'FC Lavaur'].map(c=>`<button data-act="regionalClub" data-club="${c}">${c}</button>`).join('')}</div>`:''}
       ${academyOffersHTML()}
       <div class="card"><h2>Classement final</h2>${tableHTML()}
-      <button type="button" data-act="nextSeason" onclick="forceNextSeason(); return false;">Saison suivante</button></div>`;
+      <button type="button" data-act="nextSeason">Saison suivante</button></div>`;
     return;
   }
 
