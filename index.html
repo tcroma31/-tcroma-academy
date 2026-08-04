@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.2.9E — EXPORT SAUVEGARDE</title>
+<title>TCROMA ACADEMY V4.3.0 — DÉBLOCAGE 18 ANS</title>
 
 <style>
 *{box-sizing:border-box}
@@ -39,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.2.9E — EXPORT SAUVEGARDE</h1>
+    <h1>⚽ TCROMA ACADEMY V4.3.0 — DÉBLOCAGE 18 ANS</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
     <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
-    <p class="muted">Version 4.2.9E — Export sauvegarde</p>
+    <p class="muted">Version 4.3.0 — Déblocage 18 ans</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -162,8 +162,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV429';
+const SAVE_KEY = 'tcromaAcademyV430';
 const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV429',
   'tcromaAcademyV428',
   'tcromaAcademyV427',
   'tcromaAcademyV426',
@@ -1125,14 +1126,25 @@ const COMPETITION_DEFINITIONS = {
 };
 
 function competitionIdsForPlayer(p){
+  const foreignYouth=
+    !p.pro &&
+    p.academy &&
+    p.academy!=='Aucun' &&
+    p.academyCountry &&
+    p.academyCountry!=='France';
+
+  if(foreignYouth)return [];
+
   if(p.age<=15)return ['district','regionalYouth'];
   if(p.age<=17)return ['regionalYouth','gambardella'];
   if(p.age===18)return p.pro?['gambardella','nationalCup']:['gambardella','occitanie','france'];
+
   if(p.pro){
     const ids=['nationalCup'];
     if((p.clubPrestige||0)>=72)ids.push('champions');
     return ids;
   }
+
   return ['occitanie','france'];
 }
 
@@ -1169,9 +1181,24 @@ function initializeCompetitions(force=false){
       records:[]
     };
   }else{
+    state.competitions.active =
+      state.competitions.active.filter(c=>expected.includes(c.id));
+
     for(const id of expected){
       if(!state.competitions.active.some(c=>c.id===id)){
         state.competitions.active.push(createCompetition(id));
+      }
+    }
+
+    if(
+      state.season.activeCompetitionId &&
+      !expected.includes(state.season.activeCompetitionId)
+    ){
+      state.season.activeCompetitionId='';
+      state.season.lastCompetitionResult=null;
+
+      if(['competitionDraw','competitionReady','competitionResult'].includes(state.season.phase)){
+        state.season.phase='life';
       }
     }
   }
@@ -1342,7 +1369,7 @@ function exportCareerSave(){
   try{
     const payload={
       exportedAt:new Date().toISOString(),
-      version:'V4.2.9E',
+      version:'V4.3.0',
       currentSaveKey:SAVE_KEY,
       saves:{}
     };
@@ -1464,7 +1491,63 @@ function repairV427AgeCorruption(data){
   return data;
 }
 
+
+function repairForeignYouthAge18(data){
+  if(!data || !data.player || !data.season) return data;
+
+  const p=data.player;
+  const s=data.season;
+  const lastHistory=Array.isArray(p.history)&&p.history.length
+    ? p.history[p.history.length-1]
+    : null;
+
+  const justFinished17=lastHistory && Number(lastHistory.age)===17;
+  const foreignAcademy=
+    p.academy &&
+    p.academy!=='Aucun' &&
+    p.academyCountry &&
+    p.academyCountry!=='France';
+
+  if(Number(p.age)===18 && justFinished17 && foreignAcademy && !p.pro && !p.amateur){
+    const expected=YOUTH_LEAGUES_BY_COUNTRY[p.academyCountry];
+
+    if(expected){
+      data.league=makeAcademyLeague(p.academyCountry,p.club);
+      p.seasonStartClub=p.club;
+      p.seasonStartLevel=data.league.level;
+    }
+
+    s.round=1;
+    s.phase='life';
+    s.activeCompetitionId='';
+    s.lastCompetitionResult=null;
+    s.weekEvent=null;
+    s.trainingEvent=null;
+    s.preMatch=null;
+    s.matchAction=null;
+    s.lastResult=null;
+    s.preseasonPending=false;
+    s.preseasonDone=true;
+    s.seasonProcessed=false;
+    s.midReportDone=false;
+    s.endReport=null;
+    s.midReport=null;
+
+    data.competitions={
+      active:[],
+      calendar:[],
+      trophies:Array.isArray(data.competitions?.trophies)?data.competitions.trophies:[],
+      records:Array.isArray(data.competitions?.records)?data.competitions.records:[]
+    };
+
+    data.__foreignYouth18Repaired=true;
+  }
+
+  return data;
+}
+
 function normalizeState(data){
+  data=repairForeignYouthAge18(data);
   data=repairV427AgeCorruption(data);
   if(!data || !data.player || !data.season) return null;
 
@@ -4129,13 +4212,17 @@ function render(){
   }
 
   renderHeader();
-  // Une restauration doit toujours déboucher sur un écran jouable.
+
   if(state.season.phase==='life' && !state.season.weekEvent){
     createWeekEvent();
   }
+
   initializeCompetitions();
-  renderWeek();
+
+  // Les onglets sont remplis avant la semaine :
+  // même si un événement de semaine pose problème, Joueur/Classement/etc. restent visibles.
   renderTabs();
+  renderWeek();
   save();
 }
 
