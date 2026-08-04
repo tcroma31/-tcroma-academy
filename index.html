@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCROMA ACADEMY V4.3.2 — CHAMPIONNATS PRO 18 CLUBS</title>
+<title>TCROMA ACADEMY V4.3.3 — TRANSFERTS INTER-CHAMPIONNATS</title>
 
 <style>
 *{box-sizing:border-box}
@@ -39,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <section id="home" class="hero">
   <div class="card center">
     <div class="muted">TCROMA Studio présente</div><div class="muted">Mathieu • Thomas • Ugo • Mattéo</div>
-    <h1>⚽ TCROMA ACADEMY V4.3.2 — CHAMPIONNATS PRO 18 CLUBS</h1>
+    <h1>⚽ TCROMA ACADEMY V4.3.3 — TRANSFERTS INTER-CHAMPIONNATS</h1>
     <h2>Ta carrière. Tes choix. Ton histoire.</h2>
     <p>De 13 ans aux seniors : carrière, choix réels, matchs cohérents, centres de formation et compétitions.</p>
-    <p class="muted">Version 4.3.2 — Championnats pro 18 clubs</p>
+    <p class="muted">Version 4.3.3 — Transferts inter-championnats</p>
 
     <button id="newCareer">Nouvelle carrière</button>
     <button id="continueCareer" class="secondary">Continuer</button>
@@ -162,8 +162,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;b
 <script>
 'use strict';
 
-const SAVE_KEY = 'tcromaAcademyV432';
+const SAVE_KEY = 'tcromaAcademyV433';
 const LEGACY_SAVE_KEYS = [
+  'tcromaAcademyV432',
   'tcromaAcademyV431',
   'tcromaAcademyV430',
   'tcromaAcademyV429',
@@ -1420,7 +1421,7 @@ function exportCareerSave(){
   try{
     const payload={
       exportedAt:new Date().toISOString(),
-      version:'V4.3.2',
+      version:'V4.3.3',
       currentSaveKey:SAVE_KEY,
       saves:{}
     };
@@ -1618,6 +1619,40 @@ function normalizeState(data){
 
   const p = data.player;
   const s = data.season;
+
+  // Migration V4.3.3 : le championnat doit correspondre au club professionnel.
+  // Répare par exemple Liverpool resté dans une table de Liga.
+  if(p.pro){
+    const realLeague=professionalLeagueForClub(p.club);
+    const currentLeague=String(data.league?.level||'');
+
+    if(realLeague && PRO_LEAGUES[realLeague] && currentLeague!==realLeague){
+      const oldRound=Math.max(1,Number(s.round)||1);
+      const oldTotal=Math.max(1,Number(data.league?.schedule?.length)||1);
+
+      p.proLeague=realLeague;
+      p.clubPrestige=PRO_LEAGUES[realLeague].prestige;
+      p.currentCountry=PRO_LEAGUES[realLeague].country;
+
+      const newLeague=makeProfessionalLeague();
+      const targetRound=equivalentTransferRound(oldRound,oldTotal,newLeague.schedule.length);
+      seedLeagueBeforeArrival(newLeague,targetRound);
+
+      data.league=newLeague;
+      s.round=targetRound;
+      s.phase='life';
+      s.weekEvent=null;
+      s.trainingEvent=null;
+      s.preMatch=null;
+      s.matchAction=null;
+      s.lastResult=null;
+      s.activeCompetitionId='';
+      s.lastCompetitionResult=null;
+
+      data.__crossLeagueTransferRepaired=true;
+    }
+  }
+
   // Migration V4.3.2 : un championnat professionnel doit contenir 18 clubs.
   if(p.pro && p.proLeague && PRO_LEAGUES[p.proLeague]){
     const currentCount=Array.isArray(data.league?.clubs)?data.league.clubs.length:0;
@@ -3049,17 +3084,31 @@ function hotelBeforeBigGame(){
   const p=state.player;
   return p.pro && (p.europeCompetition || p.nationalCompetition) && Math.random()<.40;
 }
+
+function professionalLeagueForClub(club){
+  for(const [league,data] of Object.entries(PRO_LEAGUES)){
+    if(Array.isArray(data.clubs) && data.clubs.includes(club)){
+      return league;
+    }
+    const extras=PRO_LEAGUE_EXTRA_CLUBS[league]||[];
+    if(extras.includes(club)){
+      return league;
+    }
+  }
+  return '';
+}
+
 function assignProLeague(){
   const p=state.player;
   if(!p.pro)return;
 
-  for(const [league,data] of Object.entries(PRO_LEAGUES)){
-    if(data.clubs.includes(p.club)){
-      p.proLeague=league;
-      p.clubPrestige=data.prestige;
-      p.currentCountry=data.country;
-      return;
-    }
+  const actualLeague=professionalLeagueForClub(p.club);
+  if(actualLeague && PRO_LEAGUES[actualLeague]){
+    const data=PRO_LEAGUES[actualLeague];
+    p.proLeague=actualLeague;
+    p.clubPrestige=data.prestige;
+    p.currentCountry=data.country;
+    return;
   }
 
   if(p.proLeague&&PRO_LEAGUES[p.proLeague])return;
@@ -3419,7 +3468,14 @@ function acceptMarketOffer(id){
     p.marketMessage=`Contrat signé à ${o.club} pour ${o.years} ans.`;
   }
 
-  if(o.level&&PRO_LEAGUES[o.level]){
+  // Le championnat est déterminé d'abord par le club signé.
+  // Exemple : Liverpool => Premier League, même si l'offre provenait d'un ancien contexte Liga.
+  const actualLeague=professionalLeagueForClub(p.club);
+  if(actualLeague && PRO_LEAGUES[actualLeague]){
+    p.proLeague=actualLeague;
+    p.clubPrestige=PRO_LEAGUES[actualLeague].prestige;
+    p.currentCountry=PRO_LEAGUES[actualLeague].country;
+  }else if(o.level&&PRO_LEAGUES[o.level]){
     p.proLeague=o.level;
     p.clubPrestige=PRO_LEAGUES[o.level].prestige;
     p.currentCountry=PRO_LEAGUES[o.level].country;
@@ -3430,11 +3486,31 @@ function acceptMarketOffer(id){
     p.maturity=clamp((p.maturity||25)+1);
   }
 
-  if(midSeason && p.proLeague && PRO_LEAGUES[p.proLeague]){
+  // Dès qu'un transfert pro est signé, on reconstruit TOUJOURS le championnat
+  // du nouveau club, même à J1/J2.
+  if(p.pro && p.proLeague && PRO_LEAGUES[p.proLeague]){
     const newLeague=makeProfessionalLeague();
     const arrivalRound=switchLeagueAtCurrentProgress(newLeague,oldRound,oldTotal);
-    p.marketMessage+=` Tu arrives alors que le championnat est déjà à la journée ${arrivalRound}.`;
-    log('Transfert à mi-saison',`${old} → ${p.club}, journée ${arrivalRound}/${state.league.schedule.length}.`);
+
+    // Remise à zéro des éléments de semaine liés à l'ancien championnat.
+    state.season.weekEvent=null;
+    state.season.trainingEvent=null;
+    state.season.preMatch=null;
+    state.season.matchAction=null;
+    state.season.lastResult=null;
+    state.season.phase='life';
+    state.season.activeCompetitionId='';
+    state.season.lastCompetitionResult=null;
+
+    initializeCompetitions(true);
+
+    if(midSeason || oldRound>1){
+      p.marketMessage+=` Tu arrives alors que le championnat est déjà à la journée ${arrivalRound}.`;
+      log('Transfert à mi-saison',`${old} → ${p.club}, ${p.proLeague}, journée ${arrivalRound}/${state.league.schedule.length}.`);
+    }else{
+      p.marketMessage+=` Tu rejoins immédiatement la ${p.proLeague}.`;
+      log('Changement de championnat',`${old} → ${p.club}. Tu évolues désormais en ${p.proLeague}.`);
+    }
   }
 
   p.offers.forEach(x=>x.status=x.id===id?'accepted':'withdrawn');
